@@ -1,0 +1,32 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+  Search: "{{query}}"
+{% endblock %}
+
+
+{% block body %}
+<div>
+  {% for novel in novels %}
+    <a href="{% url 'novel' id=novel.id %}"><p>{{novel.title}}</p></a>
+  {% endfor %}
+</div>
+<nav aria-label="...">
+  <ul class="pagination justify-content-center">
+    <a href="{% url 'search' page_nr=1 %}?q={{query}}"><li class="page-item"><span class="page-link">First</span></li></a>
+    
+    {% for i in num %}
+    <a href="{% url 'search' page_nr=i%}?q={{query}}">
+      <li class="{% if current == i%}page-item active {% else %} page-item {% endif %}">
+        <span class="page-link">{{i}}
+        </span>
+        
+      </li>
+    </a>
+    {% endfor %}
+
+    <a href="{% url 'search' page_nr=last%}?q={{query}}"><li class="page-item"><span class="page-link">Last</span></li></a>
+
+  </ul>
+</nav>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "novel/layout.html" %}
+{% load static %}
+{% block title %}
+{{novel.title}}
+{% endblock %}
+{% block body %}
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin: 2rem">
+  <img src="{{novel.image}}" class="" style="width: 10rem; height: 10rem"/>
+  <div style="width: 50%">
+    <h1>{{novel.title}}</h1>
+    <p>{{novel.description | safe}}</p>
+  </div>
+</div>
+<div>
+  <h5>Chapters</h5>
+  {% for chapter in chapters %}
+  <a href="{% url 'chapter' id=chapter.id %}" ><p>{{chapter.title}}</p></a>
+  {% endfor %}
+  <a href="{% url 'chapters' id=novel.id page_nr=1 %}">More Chapters</a>
+</div>
+
+<div id="comments">
+  <input hidden name="novel" value="{{novel.id}}" />
+</div>
+<script src="{% static 'novel/comments.js' %}"></script>
+{% endblock%}

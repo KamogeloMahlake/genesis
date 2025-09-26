@@ -1,0 +1,40 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+{{title}}
+{% endblock %}
+
+{% block body %}
+<div>
+  <a href="{% url 'index'%}">Genesis</a> >> <a href="{% url 'novel' id=id %}">{{name}}</a> >> <span>Chapters</span>
+</div>
+<hr>
+<div class="list-group bg-gray">
+  {% for chapter in chapters %}
+  <a class="list-group-item list-group-item-action" href="{% url 'chapter' id=chapter.id %}">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{chapter.title}}</h5>
+      <small class="text-body-secondary">{{chapter.date}} days ago</small>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+<nav aria-label="...">
+  <ul class="pagination justify-content-center">
+    <a href="{% url 'chapters' id=id page_nr=1 %}"><li class="page-item"><span class="page-link">First</span></li></a>
+    {% for i in num %}
+    <a href="{% url 'chapters' id=id page_nr=i%}">
+      <li class="{% if current == i%}page-item active {% else %} page-item {% endif %}">
+        <span class="page-link">{{i}}
+        </span>
+        
+      </li>
+    </a>
+    {% endfor %}
+
+    <a href="{% url 'chapters' id=id page_nr=last%}"><li class="page-item"><span class="page-link">Last</span></li></a>
+
+  </ul>
+</nav>
+
+{% endblock %}

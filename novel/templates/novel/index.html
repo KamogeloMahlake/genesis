@@ -1,0 +1,38 @@
+{% extends "novel/layout.html" %}
+
+
+{% block title %}
+  Genesis | Home
+{% endblock %}
+
+
+{% block body %}
+<div class="index-novels">
+  {% for novel in novels %}
+    <div>
+      <a href="{% url 'novel' id=novel.id %}" class="index-image">
+        <img src="{{novel.novel_image.url}}" class="img-responsive item-img lazy cover" />
+      </a>
+      <div style="float: none">
+        <a href="{% url 'novel' id=novel.id %}">
+          <h4>{{novel.title}}</h4>
+        </a>
+        <div class="desc-text">{{novel.description | safe }}</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div>
+  <h3>Recent Chapters</h3>
+  {% for chapter in recent_chapters %}
+    <a style="display: flex;" href="{% url 'chapter' id=chapter.id %}">
+      <img src="{{chapter.novel_image_url}}" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%;" />
+      <div>
+        <h6>{{chapter.novel_name}}</h6>
+        <p>{{chapter.title}}</p>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+{{title}}
+{% endblock %}
+
+{% block body %}
+<div>
+  {% for novel in novels %}
+    <a href="{% url 'novel' id=novel.id %}"><p>{{novel.title}}</p></a>
+  {% endfor %}
+</div>
+<nav aria-label="...">
+  <ul class="pagination justify-content-center">
+    <a href="{% url 'novels' order=order page_nr=1 %}"><li class="page-item"><span class="page-link">First</span></li></a>
+    {% for i in num %}
+    <a href="{% url 'novels' order=order page_nr=i%}">
+      <li class="{% if current == i%}page-item active {% else %} page-item {% endif %}">
+        <span class="page-link">{{i}}
+        </span>
+        
+      </li>
+    </a>
+    {% endfor %}
+
+    <a href="{% url 'novels' order=order page_nr=last%}"><li class="page-item"><span class="page-link">Last</span></li></a>
+
+  </ul>
+</nav>
+{% endblock %}
