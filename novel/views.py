@@ -9,7 +9,82 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from novel.models import Comment, User, Novel, Chapter
+from novel.forms import NewNovelForm
 
+def profile(request, username):
+    try:
+        user = User.objects.get(username=username)
+        novels = Novel.objects.filter(creator=user).order_by('-id')
+        return render(request, "novel/profile.html", {"profile_user": user, "novels": [novel.serialize() for novel in novels], "is_own_profile": request.user == user})
+    except User.DoesNotExist:
+        return HttpResponseRedirect(reverse("index"))
+
+def edit_profile(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+
+        if password != confirmation:
+            return render(
+                request, "novel/edit_profile.html", {"message": "Passwords must match", "user": request.user}
+            )
+
+        try:
+            user = User.objects.get(pk=request.user.id)
+            user.username = username
+            user.email = email
+            if password:
+                user.set_password(password)
+            user.save()
+            login(request, user)
+            return HttpResponseRedirect(reverse("profile", kwargs={"username": user.username}))
+        except IntegrityError:
+            return render(
+                request, "novel/edit_profile.html", {"message": "Username already taken", "user": request.user}
+            )
+    else:
+        return render(request, "novel/edit_profile.html", {"user": request.user})
+
+def bookmarks(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    
+    novels = request.user.bookmarks.all().order_by('-id')
+    return render(request, "novel/bookmarks.html", {"novels": [novel.serialize() for novel in novels]})    
+
+@csrf_exempt
+@login_required(redirect_field_name=None, login_url='/login')
+def create_novel(request):
+    if request.method == "POST":
+        form = NewNovelForm(request.POST, request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            genres = form.cleaned_data["genres"]
+            novel_image = form.cleaned_data["novel_image"]
+
+            novel = Novel(
+                title=title,
+                description=description,
+                novel_image=novel_image,
+                creator=request.user
+            )
+            novel.save()
+            novel.genres.set(genres)
+            novel.save()
+
+            return JsonResponse({"message": "Novel created successfully", "novel_id": novel.id}, status=201)
+        else:
+            return JsonResponse({"error": "Invalid form data"}, status=400)
+    else:
+        form = NewNovelForm()
+    
+    return render(request, "novel/create_novel.html", {"form": form})
 
 def search(request, page_nr=0):
     if page_nr > 0:
@@ -173,10 +248,10 @@ def bookmark(request, id):
 
         if novel in request.user.bookmarks.all():
             request.user.bookmarks.remove(novel)
-            return JsonResponse({"message": "Bookmark removed"}, status=200)
+            return JsonResponse({"message": "Removed"}, status=200)
         else:
             request.user.bookmarks.add(novel)
-            return JsonResponse({"message": "Bookmark added"}, status=200)
+            return JsonResponse({"message": "Added"}, status=200)
     except Novel.DoesNotExist:
         return JsonResponse({"error": "Novel does not exist"}, status=404)
     
@@ -249,9 +324,9 @@ def chapters_view(request, id, page_nr):
 def novel(request, id):
     n = Novel.objects.get(pk=id)
     c = Comment.objects.filter(novel=n)
-    chapters = Chapter.objects.filter(novel=n).order_by("num")[:10]
+    chapters = Chapter.objects.filter(novel=n).order_by("num")[:20]
     return render(
-        request, "novel/novel.html", {"novel": n.serialize(), "comments": c, "chapters": [chapter.serialize() for chapter in chapters]}
+        request, "novel/novel.html", {"novel": n.serialize(), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
     )
 
 

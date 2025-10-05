@@ -9,25 +9,103 @@
 {% endblock %}
 
 {% block body %}
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin: 2rem">
-  <img src="{{novel.image}}" class="" style="width: 10rem; height: 10rem"/>
-  <div style="width: 50%">
-    <h1>{{novel.title}}</h1>
-    <p>{{novel.description | safe}}</p>
-  </div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 2rem; border: 1px solid white; padding: 1rem; border-radius: 15px;">
+  <img src="{{novel.image}}" class="images" style="width: 10rem; height: 10rem"/>
+  <ul class="list-group list-group-flush" style="width: 99%; height: auto;" >
+    <a class="list-group-item" href="{% url 'chapter' id=chapter_id %}" >
+        Start Reading
+    </a>
+
+    <a class="list-group-item" href="{% url 'chapters' id=novel.id page_nr=1%}">
+        Chapter List
+    </a>
+    
+    <a class="list-group-item" id="change">
+    {% if bookmark %}
+        Remove Bookmark
+    {% else %}
+        Bookmark
+    {% endif %}
+    </a>
+    
+    <a class="list-group-item">
+        Comments ({{novel.comments}})
+    </a>
+  </ul>
 </div>
-<div>
-  <h5>Chapters</h5>
+<br>
+<h1>{{novel.title}}</h1>
+<br>
+
+<div  class="tab">
+  <button class="tablinks" onclick="openCity(event, 'info')" id="defaultOpen">Info</button>
+  <button class="tablinks" onclick="openCity(event, 'details')">Description</button>
+
+  <button class="tablinks" onclick="openCity(event, 'chapters')">Chapters</button>
+  <button class="tablinks" onclick="openCity(event, 'comments')">Comments ({{novel.comments}})</button>
+</div>
+
+<div id="info" class="tabcontent">
+</div>
+
+<div id="details" class="tabcontent">
+    <div>{{novel.description | safe}}</div>
+    <button id="show" class="btn ">Show more</button>
+</div>
+
+<div id="chapters" class="tabcontent list-group bg-gray">
   {% for chapter in chapters %}
-  <a href="{% url 'chapter' id=chapter.id %}" ><p>{{chapter.title}}</p></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'chapter' id=chapter.id %}">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{chapter.title}}</h5>
+      <small class="text-body-secondary">{{chapter.date}} days ago</small>
+    </div>
+  </a>
   {% endfor %}
   <a href="{% url 'chapters' id=novel.id page_nr=1 %}">More Chapters</a>
 </div>
 <input hidden id="page" name="novel" value="{{novel.id}}" />
 
-<div id="comments">
+<div class="tabcontent" id="comments">
 </div>
+<script>
+  const openCity = (evt, cityName) => {
+    let i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(cityName).style.display = "block";
+    evt.currentTarget.className += " active";
+  };
+  document.getElementById("defaultOpen").click();
 
+  const bookmark = document.getElementById('change');
+  
+  bookmark.addEventListener('click', async() => {
+    let response = await fetch("/bookmark/{{novel.id}}");
+    let data = await response.json();
+
+    if (data.message === 'Removed') {
+      bookmark.innerText = 'Bookmark';
+    } else if (data.message === 'Added') {
+      bookmark.innerText = 'Remove Bookmark';
+    } else {
+      alert(data.error);
+    }
+  });
+
+  document.getElementById('show').addEventListener('click', () => {
+    const desc = document.querySelector('.desc-text');
+    desc.style.webkitLineClamp = desc.style.webkitLineClamp === '9' ? 'none' : '9';
+    desc.style.lineClamp = desc.style.lineClamp === '9' ? 'none' : '9';
+    document.getElementById('show').innerText = desc.style.webkitLineClamp === '9' ? 'Show more' : 'Show less';
+  });  
+</script>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>

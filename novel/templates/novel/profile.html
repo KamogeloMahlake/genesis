@@ -1,0 +1,38 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+  Genesis | Profile
+{% endblock %}
+
+{% block body %}
+<div>
+  <a href="{% url 'index'%}">Genesis</a> >> <span>Profile</span>
+</div>
+<hr>
+<div style="display: flex; gap: 2rem;">
+  <div style="flex: 1; border: 1px solid white; border-radius: 15px; padding: 1rem; background-color: #1e1e1e;">
+    <h3>{{user.username}}</h3>
+    <p>{{user.email}}</p>
+    <p>Member since: {{user.date_joined}}</p>
+    <p>Number of novels: {{novels|length}}</p>
+    <p>Number of comments: {{comments_count}}</p>
+    <a href="{% url 'edit_profile' %}"> Edit Profile</a>
+  </div>
+  <div style="flex: 2;">
+    <h3>My Novels</h3>
+    <div class="list-group bg-gray">
+      {% for novel in novels %}
+      <a class="list-group-item list-group-item-action" href="{% url 'novel' id=novel.id %}">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{novel.title}}</h5>
+          <small class="text-body-secondary">Chapters: {{novel.chapters_count}}</small>
+        </div>
+        <p class="mb-1">{{novel.description}}</p>
+      </a>
+      {% empty %}
+      <p>You have not created any novels yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -20,6 +20,16 @@ function AddNewComment({handleTextChange, handleSubmit, value}) {
   )
 }
 
+function CommentText({comment}) {
+  const html = comment.split('\n').map((line, index) => (
+    <p key={index}>{line}</p>
+  ));
+  return (
+    <div>
+      {html}
+    </div>
+  );
+}
 function Comment({userName, comment, date, user, likesCount, liked, id, disliked, dislikesCount, load, replies}) {
   const [s, setS] = React.useState({
     showForm: false,
@@ -77,6 +87,7 @@ function Comment({userName, comment, date, user, likesCount, liked, id, disliked
   const showRepliesForm = e => {
     setS({...s, showForm: !s.showForm});
   }
+
   return (
     <div className="list-group-item list-group-item-action">
       <div className="d-flex w-100 justify-content-between">
@@ -100,9 +111,9 @@ function Comment({userName, comment, date, user, likesCount, liked, id, disliked
 
       </div>
       <hr />
-      <div>
-        <p className="mb-1">{comment}</p>
-      </div>
+
+      <CommentText comment={comment} />
+      
       {replies.length > 0 && s.showReplies 
       ?
       <ul className="list-unstyled">
@@ -119,6 +130,7 @@ function Comment({userName, comment, date, user, likesCount, liked, id, disliked
           disliked={reply.disliked}
           load={load}
           replies={reply.replies}
+          key={reply.id}
           />
         ))}
         <button className="btn btn-link text-decoration-none p-0"  onClick={() => setS({...s, showReplies: false})}>Hide Replies</button>
@@ -166,6 +178,7 @@ function CommentsList({comments, load}) {
           disliked={comment.disliked}
           load={load}
           replies={comment.replies}
+          key={comment.id}
         />
       ))}
     </div>
@@ -230,7 +243,7 @@ function App() {
   React.useEffect(() => loadComments(), []);
 
   return (
-    <div style={{marginTop: '2rem', border: '5px solid #111111', borderRadius: '10px', padding: '1rem'}}>
+    <div style={{marginTop: '2rem', padding: '1rem'}}>
       <AddNewComment 
       handleSubmit={handleSubmit} 
       handleTextChange={handleTextChange} 
@@ -241,7 +254,7 @@ function App() {
         <ul className="pagination justify-content-center">
           {state.numOfPages.map(p => (
             <li 
-              className={p === state.currentPage ? 'page-item active' : 'page-item'} 
+              className={p === state.currentPage ? 'page-item active disabled' : 'page-item'} 
               style={{cursor: 'pointer'}}
               onClick={() => {
                 loadComments(p);

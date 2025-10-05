@@ -18,4 +18,9 @@ urlpatterns = [
     path("search/<int:page_nr>", views.search, name="search"),
     path("reply/<int:id>", views.reply, name="reply"),
     path("bookmark/<int:id>", views.bookmark, name="bookmark"),
-]
+    path("create_novel", views.create_novel, name="create_novel"),
+    path("profile/<str:username>", views.profile, name="profile"),
+    path("edit_profile", views.edit_profile, name="edit_profile"),
+    path("bookmarks", views.bookmarks, name="bookmarks"),
+    
+]   

@@ -146,6 +146,11 @@ class Genre(models.Model):
     name = models.CharField(max_length=100)
     novel = models.ManyToManyField(Novel, related_name="genres", blank=True)
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
 
 class Rating(models.Model):
     user = models.ForeignKey(
