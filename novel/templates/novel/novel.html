@@ -1,0 +1,35 @@
+{% extends "novel/layout.html" %}
+{% load static %}
+
+{% block title %}
+{{novel.title}}
+{% endblock %}
+
+{% block script %}
+{% endblock %}
+
+{% block body %}
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin: 2rem">
+  <img src="{{novel.image}}" class="" style="width: 10rem; height: 10rem"/>
+  <div style="width: 50%">
+    <h1>{{novel.title}}</h1>
+    <p>{{novel.description | safe}}</p>
+  </div>
+</div>
+<div>
+  <h5>Chapters</h5>
+  {% for chapter in chapters %}
+  <a href="{% url 'chapter' id=chapter.id %}" ><p>{{chapter.title}}</p></a>
+  {% endfor %}
+  <a href="{% url 'chapters' id=novel.id page_nr=1 %}">More Chapters</a>
+</div>
+<input hidden id="page" name="novel" value="{{novel.id}}" />
+
+<div id="comments">
+</div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'novel/comments.js' %}"></script>
+{% endblock%}

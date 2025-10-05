@@ -1,0 +1,9 @@
+.env
+novels_databases/
+media/
+__pycache__
+db.sqlite3
+genesis/__pycache__
+novel/migrations/__pycache__
+novel/migrations/0001_initial.py
+env

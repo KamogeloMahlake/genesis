@@ -1,0 +1,60 @@
+{% extends "novel/layout.html" %}
+
+{% load static %}
+{% block title %}
+  {{chapter.title}}
+{% endblock %}
+
+
+{% block body %}
+
+
+<div>
+  <a href="{% url 'index' %}">Genesis</a> >> <a href="{% url 'novel' id=chapter.novel_id %}">{{chapter.novel_name}}</a> >> <span>{{chapter.title}}</span>
+</div>
+
+
+<hr>
+
+
+<div class="none" id="index">
+  <div style="margin-bottom: auto">
+    <h4>{{chapter.title}}</h4>
+    <a href="{%url 'novel' id=chapter.novel_id %}"><p>{{chapter.novel_name}}</p></a>
+  </div>
+
+
+  <div style="margin-top: auto">
+    <p>{{chapter.views}}</p>
+    {% if chapter.previous %}
+      <a href="{% url 'chapter' id=chapter.previous%}"><button>Previous</button></a> 
+    {% endif%}
+    <a href="{% url 'chapters' id=chapter.novel_id page_nr=1%}" /><button>Chapter List</button></a>
+    {% if chapter.next %}
+      <a href="{% url 'chapter' id=chapter.next%}"><button>Next</button></a> 
+    {% endif%}
+  </div>
+</div>
+
+<hr>
+
+<div id="content">{{chapter.content | safe }}</div>
+<hr>
+<input hidden id="page" name="chapter" value="{{chapter.id}}" />
+<div id="comments">
+</div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'novel/comments.js' %}"></script>
+<script>
+  const index = document.getElementById("index");
+  const content = document.getElementById("content");
+
+  content.addEventListener("click", () => {
+    index.classList.toggle("none");
+    index.classList.toggle("display-index");
+  })
+</script>
+{% endblock %}

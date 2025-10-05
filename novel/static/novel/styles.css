@@ -1,0 +1,100 @@
+html {
+  color-scheme: light dark;
+}
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font: normal 14px / 1.5 system-ui, Gotham Pro, Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+* {
+  margin: 0;
+}
+
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+p {
+  text-wrap: pretty;
+  font-size: 0.8rem;
+}
+
+h1, h2, h3, h3, h4, h5, h6 {
+  text-wrap: balance;
+  font-size: 0.8rem;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+
+  cursor: pointer;
+}
+
+#root, #_next {
+  isolation: isolate;
+}
+
+main, header, footer {
+  width: min(65ch, 100% - 4rem);
+  margin-inline: auto;
+}
+
+main nav {
+  overflow: auto;
+  margin: inherit;
+}
+button {
+  min-width: fit-content;
+}
+
+.index-novels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.cover {
+  max-width: 12.5rem;
+  max-height: 12.5rem;
+}
+
+.desc-text  p {
+  margin: 0
+
+}
+.desc-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  font-size: 0.8rem;
+  p {
+    font-size: 0.8rem;
+  }
+}
+.index-image {
+  float: left; 
+  margin-right: 1rem;
+}
+

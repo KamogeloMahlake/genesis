@@ -1,0 +1,99 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous" />
+        <link href="{% static 'novel/styles.css' %}" rel="stylesheet">
+        {% block style %}{% endblock%}
+    </head>
+    
+    <body>
+      <header>
+        <nav class="navbar navbar-dark bg-dark">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'index' %}">Genesis</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+              <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">
+                  {% if user.is_authenticated %}
+                    Signed in as <strong>{{user.username}}</strong>.
+                  {% else %}
+                    Not signed in.
+                  {% endif %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+              </div>
+
+              <div class="offcanvas-body">
+                <form role="search" action="{%url 'search' page_nr=1 %}" >
+                  {% csrf_token %}
+                  <div class="input-group" >
+                    <input name="q" id="search-input" minlength="3" class="form-control border-end-0 border rounded-pill" type="search" placeholder="Search" aria-label="Search" />
+                    <span class="input-group-append">
+                      <button class="btn" type="submit">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                      </button>
+                    </span>
+                  </div>
+                </form>
+                <div id="search"></div>
+                
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                {% if user.is_authenticated %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}">Register</a>
+                  </li>
+                {% endif %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </header>
+      <hr>
+      <main style="margin-top: 1rem">
+          {% block body %}
+          {% endblock %}
+      </main>
+      <hr>
+      <footer>
+        <a href="{% url 'novels' order='-id' page_nr=1 %}">Novels</a>
+      </footer>
+        <script>
+          const input = document.getElementById('search-input');
+          const searchList = document.getElementById('search');
+
+          input.addEventListener("input", async () => {
+            if (input.value.length > 2) 
+            {
+              let response = await fetch("/search/0?q=" + input.value);
+              let novels = await response.json();
+              console.log(novels);
+              let html = '';
+              novels.forEach(novel => {
+                html += `<div><a href="/novel/${novel.id}">${novel.title}</a></div>`
+              });
+              searchList.innerHTML = html;
+              
+            }
+            else searchList.innerHTML = "";
+          });
+
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    </body>
+</html>
