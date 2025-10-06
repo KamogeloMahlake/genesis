@@ -42,10 +42,32 @@
   <button class="tablinks" onclick="openCity(event, 'details')">Description</button>
 
   <button class="tablinks" onclick="openCity(event, 'chapters')">Chapters</button>
-  <button class="tablinks" onclick="openCity(event, 'comments')">Comments ({{novel.comments}})</button>
+  <button class="tablinks" onclick="openCity(event, 'comments')">Comments</button>
 </div>
 
 <div id="info" class="tabcontent">
+  <div>
+    <p><strong>Author: </strong>{{novel.author}}</p>
+    <p><strong>Status: </strong>{% if novel.status %}Completed{% else %}Ongoing{% endif %}</p>
+    <p><strong>Available: </strong>{{novel.num}} chapters</p>
+    <p><strong>Date Added: </strong>{{novel.date}}</p>
+    <p><strong>Total Views: </strong>{{novel.views}}</p>
+    <p><strong>Comments: </strong>{{novel.comments}}</p>
+    <p><strong>Total Comments: </strong>{{novel.total_comments}}</p>
+
+  </div>
+  <p style="background-color: black;" class="d-grid gap-2 d-md-block">
+    <a style="width: 100%;" class="btn" data-bs-toggle="collapse" href="#genres" role="button" aria-expanded="false" aria-controls="genres">
+      Genres
+    </a>
+  </p>
+  <div class="collapse" id="genres">
+    <div class="card card-body ">
+      {% for genre in novel.genres %}
+        <a>{{genre}}</a>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
 <div id="details" class="tabcontent">
@@ -69,20 +91,7 @@
 <div class="tabcontent" id="comments">
 </div>
 <script>
-  const openCity = (evt, cityName) => {
-    let i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(cityName).style.display = "block";
-    evt.currentTarget.className += " active";
-  };
-  document.getElementById("defaultOpen").click();
+  
 
   const bookmark = document.getElementById('change');
   
@@ -110,4 +119,5 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" src="{% static 'novel/comments.js' %}"></script>
+<script src="{% static 'novel/tabs.js' %}"></script>
 {% endblock%}

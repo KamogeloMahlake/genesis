@@ -14,8 +14,18 @@ from novel.forms import NewNovelForm
 def profile(request, username):
     try:
         user = User.objects.get(username=username)
-        novels = Novel.objects.filter(creator=user).order_by('-id')
-        return render(request, "novel/profile.html", {"profile_user": user, "novels": [novel.serialize() for novel in novels], "is_own_profile": request.user == user})
+        comments = Comment.objects.filter(user=user)
+        novels = Novel.objects.filter(user=user).order_by('-id')
+        return render(
+            request, 
+            "novel/profile.html", 
+            {
+                "user": user, 
+                "novels": [novel.serialize() for novel in novels], 
+                "is_own_profile": request.user == user,
+                "comments_count": len(comments),
+                "comments": [comment.serialize(request.user) for comment in comments]
+            })
     except User.DoesNotExist:
         return HttpResponseRedirect(reverse("index"))
 
@@ -72,19 +82,16 @@ def create_novel(request):
                 title=title,
                 description=description,
                 novel_image=novel_image,
-                creator=request.user
+                user=request.user
             )
             novel.save()
             novel.genres.set(genres)
             novel.save()
 
-            return JsonResponse({"message": "Novel created successfully", "novel_id": novel.id}, status=201)
+            return HttpResponseRedirect(reverse("novel", kwargs={"id": novel.id}))
         else:
-            return JsonResponse({"error": "Invalid form data"}, status=400)
-    else:
-        form = NewNovelForm()
-    
-    return render(request, "novel/create_novel.html", {"form": form})
+            return render(request, "novel/create_novel.html", {"form": NewNovelForm, "errors": form.errors})
+    return render(request, "novel/create_novel.html", {"form": NewNovelForm()})
 
 def search(request, page_nr=0):
     if page_nr > 0:
@@ -326,7 +333,7 @@ def novel(request, id):
     c = Comment.objects.filter(novel=n)
     chapters = Chapter.objects.filter(novel=n).order_by("num")[:20]
     return render(
-        request, "novel/novel.html", {"novel": n.serialize(), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
+        request, "novel/novel.html", {"novel": n.serialize(), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id if chapters else 0, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
     )
 
 

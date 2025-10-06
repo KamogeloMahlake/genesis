@@ -32,7 +32,8 @@ class Novel(models.Model):
             "description": self.description,
             "image": self.novel_image.url if self.novel_image else None,
             "comments": self.novel_comments.count(),
-            "views": sum(chapter.views for chapter in self.chapters.all()),
+            "total_comments": self.novel_comments.count() + sum(chapter.chapter_comments.count() for chapter in self.chapters.all()),
+            "views": sum(chapter.views for chapter in self.chapters.all()) ,
             "latest_chapter": self.chapters.order_by("-num").first().num
             if self.chapters.exists()
             else None,
@@ -45,6 +46,10 @@ class Novel(models.Model):
             )
             if self.novel_ratings.exists()
             else None,
+            "status": self.status,
+            "num": self.chapters.count(),
+            "date": self.date,
+            "author": self.user.username if self.user else 'Unknown'
         }
 
 
@@ -147,10 +152,9 @@ class Genre(models.Model):
     novel = models.ManyToManyField(Novel, related_name="genres", blank=True)
 
     def serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-        }
+        return (
+            self.id, self.name
+        )
 
 class Rating(models.Model):
     user = models.ForeignKey(
