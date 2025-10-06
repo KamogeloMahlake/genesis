@@ -5,10 +5,23 @@ from django.utils import timezone
 
 
 class User(AbstractUser):
-    user_image = models.ImageField(upload_to="user-images/")
+    user_image = models.ImageField(upload_to="user-images/", null=True, blank=True)
     bookmarks = models.ManyToManyField(
         "Novel", related_name="bookmark_by", blank=True
     ) 
+    gender = models.CharField(max_length=6, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    about = models.TextField(blank=True, null=True)
+    followers = models.ManyToManyField("self", related_name="following", blank=True, symmetrical=False)
+
+    def serialize(self, user):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "image": self.user_image.url if self.user_image else None,
+            "gender": self.gender
+        }
 
 class Novel(models.Model):
     user = models.ForeignKey(
@@ -132,6 +145,7 @@ class Comment(models.Model):
         return {
             "id": self.id,
             "user": self.user.username,
+            "image": self.user.user_image.url if self.user.user_image else '/media/avatarnew.png',
             "comment": self.comment,
             "date": self.date,
             "likesCount": self.like.count(),
@@ -163,6 +177,18 @@ class Rating(models.Model):
     novel = models.ForeignKey(
         Novel, on_delete=models.CASCADE, related_name="novel_ratings"
     )
-    rating = models.PositiveIntegerField(
+    story = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    writing = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    world = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    characters = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    average_rating = models.PositiveIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
