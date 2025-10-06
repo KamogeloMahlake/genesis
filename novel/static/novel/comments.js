@@ -30,7 +30,7 @@ function CommentText({comment}) {
     </div>
   );
 }
-function Comment({userName, comment, date, user, likesCount, liked, id, disliked, dislikesCount, load, replies}) {
+function Comment({userName, image, comment, date, user, likesCount, liked, id, disliked, dislikesCount, load, replies}) {
   const [s, setS] = React.useState({
     showForm: false,
     text: "",
@@ -93,6 +93,7 @@ function Comment({userName, comment, date, user, likesCount, liked, id, disliked
       <div className="d-flex w-100 justify-content-between">
         <div>
           <a href="#" style={{display: 'flex'}}>
+              <img src={image} style={{display: "inline-block", width: "2.1875rem", height: "2.1875rem", borderRadius: "50%", aspectRatio: "1", objectFit: "cover"}} />
               <p><strong>{userName}</strong> ⋅ <small>{date}</small></p>
           </a>
         </div>
@@ -131,6 +132,7 @@ function Comment({userName, comment, date, user, likesCount, liked, id, disliked
           load={load}
           replies={reply.replies}
           key={reply.id}
+          image={reply.image}
           />
         ))}
         <button className="btn btn-link text-decoration-none p-0"  onClick={() => setS({...s, showReplies: false})}>Hide Replies</button>
@@ -179,6 +181,7 @@ function CommentsList({comments, load}) {
           load={load}
           replies={comment.replies}
           key={comment.id}
+          image={comment.image}
         />
       ))}
     </div>
