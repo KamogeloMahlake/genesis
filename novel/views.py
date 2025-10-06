@@ -14,17 +14,14 @@ from novel.forms import NewNovelForm
 def profile(request, username):
     try:
         user = User.objects.get(username=username)
-        comments = Comment.objects.filter(user=user)
         novels = Novel.objects.filter(user=user).order_by('-id')
         return render(
             request, 
             "novel/profile.html", 
             {
-                "user": user, 
+                "user": user.serialize(request.user), 
                 "novels": [novel.serialize() for novel in novels], 
                 "is_own_profile": request.user == user,
-                "comments_count": len(comments),
-                "comments": [comment.serialize(request.user) for comment in comments]
             })
     except User.DoesNotExist:
         return HttpResponseRedirect(reverse("index"))

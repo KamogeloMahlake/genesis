@@ -19,8 +19,16 @@ class User(AbstractUser):
         return {
             "id": self.id,
             "username": self.username,
-            "image": self.user_image.url if self.user_image else None,
-            "gender": self.gender
+            "image": self.user_image.url if self.user_image else "/media/avatarnew.png",
+            "gender": self.gender,
+            "date_joined": self.date_joined,
+            "comments_count": self.user_comments.count(),
+            "comments": [comment.serialize(user) for comment in self.user_comments.all()],
+            "followers_count": self.followers.count(),
+            "following_count": self.following.count(),
+            "is_following": user in self.followers.all()
+
+
         }
 
 class Novel(models.Model):
