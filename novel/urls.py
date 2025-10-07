@@ -22,5 +22,7 @@ urlpatterns = [
     path("profile/<str:username>", views.profile, name="profile"),
     path("edit_profile", views.edit_profile, name="edit_profile"),
     path("bookmarks", views.bookmarks, name="bookmarks"),
-    
+    path("follow/<str:username>", views.follow, name="follow" ),
+    path("delete/<str:view>/<int:id>", views.delete, name="delete"),
+    path("edit_novel/<int:id>", views.edit_novel, name="edit_novel"),
 ]   

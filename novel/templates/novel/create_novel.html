@@ -1,19 +1,22 @@
 {% extends "novel/layout.html" %}
 
 {% block title %}
-  Genesis | Create Novel
+  Genesis | {% if edit %}Edit {% else %}Create{% endif %} Novel
 {% endblock %}
 {% block body %}
 <div>
   {{errors}}
 </div>
+{% if edit %}
+  <h1><strong>Edit Novel</strong></h1>
+{% else %}
 <h1><strong>Create a New Novel</strong></h1>
-
+{% endif %}
 <div>
   <form method="POST" enctype="multipart/form-data" style="margin-top: 1rem;">
     {% csrf_token %}
     {{ form }}
-    <button type="submit" class="btn btn-primary" style="border-radius: 15px; margin-top: 1rem;">Create Novel</button>
+    <button type="submit" class="btn btn-primary" style="border-radius: 15px; margin-top: 1rem;">{% if edit %}Update Novel{% else %}Create Novel{% endif %}</button>
   </form>
 </div>
 {% endblock %}

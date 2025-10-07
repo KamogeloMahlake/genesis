@@ -4,12 +4,26 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from novel.models import Comment, User, Novel, Chapter
 from novel.forms import NewNovelForm
+
+def follow(request, username):
+    user = User.objects.get(username=username)
+    if user == request.user:
+        return JsonResponse({"error": "You can't follow yourself"}, status=403)
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "You must login to follow"}, status=403)
+
+    if request.user in user.followers.all():
+        user.followers.remove(request.user)
+    else:
+        user.followers.add(request.user)
+
+    return JsonResponse({"follow": request.user in user.followers.all(), "followersCount": user.followers.count(), "followingCount": user.following.count()})
 
 def profile(request, username):
     try:
@@ -20,7 +34,7 @@ def profile(request, username):
             "novel/profile.html", 
             {
                 "user": user.serialize(request.user), 
-                "novels": [novel.serialize() for novel in novels], 
+                "novels": [novel.serialize(request.user) for novel in novels], 
                 "is_own_profile": request.user == user,
             })
     except User.DoesNotExist:
@@ -62,7 +76,7 @@ def bookmarks(request):
         return HttpResponseRedirect(reverse("login"))
     
     novels = request.user.bookmarks.all().order_by('-id')
-    return render(request, "novel/bookmarks.html", {"novels": [novel.serialize() for novel in novels]})    
+    return render(request, "novel/bookmarks.html", {"novels": [novel.serialize(request.user) for novel in novels]})    
 
 @csrf_exempt
 @login_required(redirect_field_name=None, login_url='/login')
@@ -90,6 +104,60 @@ def create_novel(request):
             return render(request, "novel/create_novel.html", {"form": NewNovelForm, "errors": form.errors})
     return render(request, "novel/create_novel.html", {"form": NewNovelForm()})
 
+@csrf_exempt
+@login_required
+def edit_novel(request, id):
+    novel = get_object_or_404(Novel, pk=id)
+    
+    if request.method == 'POST':
+        form = NewNovelForm(request.POST, request.FILES)        
+
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            genres = form.cleaned_data["genres"]
+            novel_image = form.cleaned_data["novel_image"]
+
+
+            novel.title = title
+            novel.description = description
+            novel.novel_image = novel_image
+            novel.genres.clear()
+            novel.genres.set(genres)
+            novel.save()
+
+            return HttpResponseRedirect(reverse('novel', kwargs={'id': id}))
+        else:
+            return render(
+                request,
+                'novel/create_novel.html',
+                {
+                    'form': NewNovelForm
+                    (initial={
+                        'title': novel.title,
+                        'description': novel.description,
+                        'genres': novel.genres.all(),
+                        'novel_image': novel.novel_image
+                    }),
+                    'edit': True,
+                    'errors': form.errors
+                }
+            )
+    return render(
+        request,
+        'novel/create_novel.html',
+        {
+            'form': NewNovelForm
+            (initial={
+                'title': novel.title,
+                'description': novel.description,
+                'genres': novel.genres.all(),
+                'novel_image': novel.novel_image
+            }),
+            'edit': True,
+        }
+    )
+
 def search(request, page_nr=0):
     if page_nr > 0:
         query = request.GET.get("q")
@@ -108,14 +176,14 @@ def search(request, page_nr=0):
                 "query": query,
                 "num": [i for i in range(1, c.num_pages + 1)], 
                 "current": page_nr,
-                "novels": [novel.serialize() for novel in current_novels.object_list],
+                "novels": [novel.serialize(request.user) for novel in current_novels.object_list],
                 "last": c.num_pages
             },
         )
 
     query = request.GET.get("q")
     novels = Novel.objects.filter(title__icontains=query)
-    return JsonResponse([novel.serialize() for novel in novels], status=200, safe=False)
+    return JsonResponse([novel.serialize(request.user) for novel in novels], status=200, safe=False)
 
 @csrf_exempt
 @login_required(redirect_field_name=None, login_url='/login')
@@ -264,7 +332,7 @@ def index(request):
         request,
         "novel/index.html",
         {
-            "novels": [novel.serialize() for novel in Novel.objects.all().order_by("-id")[:3]],
+            "novels": [novel.serialize(request.user) for novel in Novel.objects.all().order_by("-id")[:3]],
             "recent_chapters": [
                 chapter.serialize()
                 for chapter in Chapter.objects.all().order_by("-id")[:10]
@@ -284,7 +352,7 @@ def novels_view(request, order, page_nr):
             "novel/novels.html",
             {
                 "novels": [
-                    novel.serialize() for novel in current_novels.object_list
+                    novel.serialize(request.user) for novel in current_novels.object_list
                 ],
                 "num": [i for i in range(1, n.num_pages + 1) if abs(i - page_nr) < 5 ], 
                 "last": n.num_pages,
@@ -318,7 +386,8 @@ def chapters_view(request, id, page_nr):
                 "current": page_nr,
                 "num": [i for i in range(1, c.num_pages + 1) if abs(i - page_nr) < 5 ],
                 "id": id,
-                "name": n.title
+                "name": n.title,
+                "is_author": n.user == request.user
             },
         )
     except EmptyPage:
@@ -330,7 +399,7 @@ def novel(request, id):
     c = Comment.objects.filter(novel=n)
     chapters = Chapter.objects.filter(novel=n).order_by("num")[:20]
     return render(
-        request, "novel/novel.html", {"novel": n.serialize(), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id if chapters else 0, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
+        request, "novel/novel.html", {"novel": n.serialize(request.user), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id if chapters else 0, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
     )
 
 
@@ -393,3 +462,14 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "novel/register.html")
+
+@login_required
+def delete(request, view, id):
+    object = Novel.objects.get(pk=id) if view == 'novel' else Chapter.objects.get(pk=id)
+    user = object.user if view == 'novel' else object.novel.user
+    if request.user != user:
+        return HttpResponseRedirect(reverse('index'))
+    object.delete()
+    if view == 'novel':
+        return HttpResponseRedirect(reverse('profile', kwargs={"username": user.username}))
+    return HttpResponseRedirect(reverse('chapters', kwargs={'id': object.novel.id, 'page_nr': 1}))

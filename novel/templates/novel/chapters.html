@@ -14,7 +14,13 @@
   <a class="list-group-item list-group-item-action" href="{% url 'chapter' id=chapter.id %}">
     <div class="d-flex w-100 justify-content-between">
       <h5 class="mb-1">{{chapter.title}}</h5>
-      <small class="text-body-secondary">{{chapter.date}} days ago</small>
+      {% if is_author %}
+        <a href="{% url 'delete' view='chapter' id=chapter.id %}" class="btn btn-danger">
+          Delete Chapter
+        </a>
+      {% else %}
+        <small class="text-body-secondary">{{chapter.date}} days ago</small>
+      {% endif %}
     </div>
   </a>
   {% endfor %}

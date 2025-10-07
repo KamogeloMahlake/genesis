@@ -9,6 +9,39 @@
 {% endblock %}
 
 {% block body %}
+{% if novel.is_author %}
+<table class="table table-borderless">
+  <tbody>
+    <tr>
+      <td>
+        <a href="{% url 'edit_novel' id=novel.id%}" class="btn btn-primary">
+          Edit Novel
+        </a>
+      </td>
+      
+      <td>
+        <a href="{% url 'chapters' id=novel.id page_nr=1%}" class="btn btn-primary">
+          View Chapters
+        </a>
+      </td>
+      <td>
+        <a class="btn btn-primary">
+          Add Chapter    
+        </a>
+      </td>
+      <td>
+        <a href="{% url 'delete' view='novel' id=novel.id %}" class="btn btn-danger">
+          Delete Novel
+        </a>
+      </td>
+    </tr>
+  
+  </tbody>
+</table>
+{% endif %}
+<div>
+
+</div>
 <div style="display: flex; justify-content: space-between; margin-bottom: 2rem; border: 1px solid white; padding: 1rem; border-radius: 15px;">
   <img src="{{novel.image}}" class="images" style="width: 10rem; height: 10rem"/>
   <ul class="list-group list-group-flush" style="width: 99%; height: auto;" >
@@ -29,7 +62,7 @@
     </a>
     
     <a class="list-group-item">
-        Comments ({{novel.comments}})
+        Subcribe
     </a>
   </ul>
 </div>

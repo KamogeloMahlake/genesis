@@ -20,15 +20,20 @@ class User(AbstractUser):
             "id": self.id,
             "username": self.username,
             "image": self.user_image.url if self.user_image else "/media/avatarnew.png",
-            "gender": self.gender,
+            "gender": self.gender if self.gender else '--',
             "date_joined": self.date_joined,
             "comments_count": self.user_comments.count(),
             "comments": [comment.serialize(user) for comment in self.user_comments.all()],
             "followers_count": self.followers.count(),
             "following_count": self.following.count(),
-            "is_following": user in self.followers.all()
-
-
+            "is_following": user in self.followers.all(),
+            "birthday": self.date_of_birth if self.date_of_birth else '--',
+            "location": self.location if self.location else '--',
+            "about": self.about,
+            "novel_comments": sum(novel.novel_comments.count() for novel in self.user_created_novels.all()),
+            "total_views": sum(sum(chapter.views for chapter in novel.chapters.all()) for novel in self.user_created_novels.all()),
+            "last_login": self.last_login,
+            "is_user": user == self,
         }
 
 class Novel(models.Model):
@@ -46,7 +51,7 @@ class Novel(models.Model):
     novel_image = models.ImageField(upload_to="novel-images/", blank=True, null=True)
     status = models.BooleanField(default=False)
 
-    def serialize(self):
+    def serialize(self, user):
         return {
             "id": self.id,
             "title": self.title,
@@ -70,7 +75,8 @@ class Novel(models.Model):
             "status": self.status,
             "num": self.chapters.count(),
             "date": self.date,
-            "author": self.user.username if self.user else 'Unknown'
+            "author": self.user.username if self.user else 'Unknown',
+            "is_author": self.user == user
         }
 
 
