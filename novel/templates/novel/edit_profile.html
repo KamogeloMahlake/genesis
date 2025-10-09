@@ -5,10 +5,13 @@
 {% endblock %}
 {% block body %}
 <h3 style="text-align: center; margin-top: 1rem;">Edit Profile</h3>
+<div>
+  {{errors}}
+</div>
 <hr>
 <form method="POST" enctype="multipart/form-data" style="max-width: 600px; margin: auto;">
   {% csrf_token %}  
-  {{ form.as_p }}
+  {{ form }}
   <button type="submit" class="btn btn-primary" style="border-radius: 15px;">Save Changes</button>
 </form>
 {% endblock %}

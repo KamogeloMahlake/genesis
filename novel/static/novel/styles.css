@@ -51,12 +51,12 @@ a {
 #root, #_next {
   isolation: isolate;
 }
-
+/*
 main, header, footer {
   width: min(65ch, 100% - 4rem);
   margin-inline: auto;
 }
-
+*/
 main nav {
   overflow: auto;
   margin: inherit;

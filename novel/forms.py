@@ -1,48 +1,16 @@
 from django import forms
-from .models import Genre
+from .models import Genre, User
+from django.contrib.auth.forms import UserChangeForm
+class EditProfileForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = ['username', 'email', 'gender', 'location', 'date_of_birth', 'about', 'user_image']
 
-class RatingForm(forms.Form):
-    story = forms.IntegerField(
-        label="Story Rating(Out of Ten) (Required)",
-        widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-            }
-        ),
-        max_value=10,
-        min_value=1
-    )
-    world = forms.IntegerField(
-        label="World Rating(Out of Ten) (Required)",
-        widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-            }
-        ),
-        max_value=10,
-        min_value=1
-    )
-    writing = forms.IntegerField(
-        label="Writing Rating(Out of Ten) (Required)",
-        widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-            }
-        ),
-        max_value=10,
-        min_value=1
-    )
-    characters = forms.IntegerField(
-        label="Characters Rating(Out of Ten) (Required)",
-        widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-            }
-        ),
-        max_value=10,
-        min_value=1
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
 class NewNovelForm(forms.Form):
     novel_image = forms.ImageField(
         label="Image",

@@ -2,7 +2,7 @@ function Form({onSubmit, buttonText, onChange, value}) {
   return (
     <form onSubmit={onSubmit} style={{border: '1px solid black', margin: '2rem'}} className="border-bottom p-3">
       <textarea className="form-control" rows="2" onChange={onChange} value={value}></textarea>
-      <button type="submit" className="btn btn-primary d-flex mt-2">{buttonText}</button>     
+      <button type="submit" className="btn btn-primary d-flex mt-2 btn-sm">{buttonText}</button>     
     </form>
   )
 }
@@ -25,7 +25,7 @@ function CommentText({comment}) {
     <p key={index}>{line}</p>
   ));
   return (
-    <div>
+    <div style={{marginLeft: "2.1875rem"}}>
       {html}
     </div>
   );
@@ -92,27 +92,25 @@ function Comment({userName, image, comment, date, user, likesCount, liked, id, d
     <div className="list-group-item list-group-item-action">
       <div className="d-flex w-100 justify-content-between">
         <div>
-          <a href="#" style={{display: 'flex'}}>
+          <a href={`/profile/${user}`} style={{display: 'flex'}}>
               <img src={image} style={{display: "inline-block", width: "2.1875rem", height: "2.1875rem", borderRadius: "50%", aspectRatio: "1", objectFit: "cover"}} />
               <p><strong>{userName}</strong> ⋅ <small>{date}</small></p>
           </a>
         </div>
         <div className="d-flex mb-2" style={{textAlign: 'right'}}>
           <span>
-            <button className="btn btn-link text-decoration-none p-0" onClick={handleLike}>
+            <button className="btn btn-link text-decoration-none p-0 btn-sm" onClick={handleLike}>
               <i className={liked ? "fa fa-thumbs-up" : "far fa-thumbs-up"} aria-hidden="true"></i>
             </button>{likesCount}
           </span> ⋅ 
           <span>
-            <button className="btn btn-link text-decoration-none p-0" onClick={handleDislike}>
+            <button className="btn btn-link text-decoration-none p-0 btn-sm" onClick={handleDislike}>
               <i className={disliked ? "fa fa-thumbs-down" : "far fa-thumbs-down"} aria-hidden="true"></i>
             </button>{dislikesCount}
           </span>
         </div>
 
       </div>
-      <hr />
-
       <CommentText comment={comment} />
       
       {replies.length > 0 && s.showReplies 
@@ -135,13 +133,13 @@ function Comment({userName, image, comment, date, user, likesCount, liked, id, d
           image={reply.image}
           />
         ))}
-        <button className="btn btn-link text-decoration-none p-0"  onClick={() => setS({...s, showReplies: false})}>Hide Replies</button>
+        <button className="btn btn-link text-decoration-none p-0 btn-sm"  onClick={() => setS({...s, showReplies: false})}>Hide Replies</button>
 
       </ul>
 
       :
         replies.length > 0 &&
-        <button className="btn btn-link text-decoration-none p-0"  onClick={() => setS({...s, showReplies: true})}>Show Replies({replies.length})</button>
+        <button className="btn btn-link text-decoration-none p-0 btn-sm"  onClick={() => setS({...s, showReplies: true})}>Show Replies({replies.length})</button>
       }
 
       {s.showForm ?
@@ -152,12 +150,12 @@ function Comment({userName, image, comment, date, user, likesCount, liked, id, d
           value={s.text}
           onChange={e => setS({...s, text: e.target.value})}>
         </textarea>
-        <button className="btn btn-primary d-flex mt-2" onClick={submitReply}>Submit Reply</button>
-        <button className="btn btn-link text-decoration-none p-0" onClick={showRepliesForm}>Close</button>
+        <button className="btn btn-primary d-flex mt-2 btn-sm" onClick={submitReply}>Submit Reply</button>
+        <button className="btn btn-link text-decoration-none p-0 btn-sm" onClick={showRepliesForm}>Close</button>
 
       </>
       : 
-        <button className="btn btn-link text-decoration-none p-0" onClick={showRepliesForm}>Reply</button>
+        <button className="btn btn-link text-decoration-none p-0 btn-sm" onClick={showRepliesForm}>Reply</button>
       }
       
     </div>
@@ -270,6 +268,9 @@ function App() {
     </div>
   );
 }
-
-ReactDOM.render(<App />, document.getElementById('comments'));
+const root = ReactDOM.createRoot(document.getElementById('comments'))
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>);
 

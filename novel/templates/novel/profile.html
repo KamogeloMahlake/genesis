@@ -109,18 +109,7 @@
             <td>{{profile_user.novel_comments}}</td>
             <td></td>
           </tr>
-          
-          <tr>
-            <td>Reviews Received:</td>
-            <td></td>
-            <td></td>
-          </tr>
-          
-          <tr>
-            <td>Readers:</td>
-            <td></td>
-            <td></td>    
-          </tr>
+
           <tr>
             <td>Series Followers:</td>
             <td></td>
@@ -137,47 +126,6 @@
 </div>
 
 <div id="novels" class="tabcontent">
-  {% if user.is_user %}
-    <table class="table table-borderless">
-      <tbody>
-        {% for novel in novels %}
-        <tr>
-          <td>
-            <img class="img-responsive item-img lazy" src="{{novel.image}}" />
-          </td>
-          <td>
-            <a>
-              {{novel.title}}
-            </a>
-          </td>
-          <td>
-            <a class="">
-              Edit Novel
-            </a>
-          </td>
-          <td>
-            <a class="">
-            View Chapters
-            </a>
-          </td>
-          <td>
-            <a class="">
-              Add Chapter
-            </a>
-          </td>
-
-          <td>
-            <a class="">
-              Delete Novel
-            </a>
-          </td>
-        </tr>
-        {% empty %}
-          {{profile_user.username}} hasn't written anything
-        {% endfor %}
-        </tbody>
-    </table>
-  {% else %}
     {% for novel in novels %}
       <div style="border: 1px solid white; border-radius: 15px; padding: 1rem; margin-bottom: 1rem; background-color: #1e1e1e; display: flex; flex-direction: column; gap: 1rem;">
         <div style="display: flex;">
@@ -215,7 +163,6 @@
     {% empty %}
       {{profile_user.username}} hasn't written anything
     {% endfor %}
-  {% endif %}
 </div>
 <script src="{% static 'novel/tabs.js' %}"></script>
 <script>

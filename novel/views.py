@@ -8,18 +8,18 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from novel.models import Comment, User, Novel, Chapter, Rating
-from novel.forms import NewNovelForm, NewChapterForm, RatingForm
+from novel.forms import NewNovelForm, NewChapterForm, EditProfileForm
 from statistics import fmean
 
 @csrf_exempt
 @login_required
 def rating(request, id):
     novel = get_object_or_404(Novel, pk=id)
-    if any(i.user == request.user for i in novel.novel_ratings.all()):
-        return JsonResponse({"error": "Already made a rating"}, status=403)
     
-
     if request.method == "POST":
+        if any(i.user == request.user for i in novel.novel_ratings.all()):
+            return JsonResponse({"error": "Already made a rating"}, status=403)
+    
         data = json.loads(request.body)
 
         story = int(data.get('story', False)) 
@@ -28,7 +28,8 @@ def rating(request, id):
         writing = int(data.get("writing", False))
 
         if all([story, characters, world, writing]):
-            rating = Rating(
+            try:
+                rating = Rating(
                 novel=novel,
                 user=request.user,
                 story=story,
@@ -37,37 +38,51 @@ def rating(request, id):
                 writing=writing,
                 average_rating=fmean([story, characters, world, writing])
             )
-            rating.save()
-
+                rating.save()
+            except Exception:
+                return JsonResponse({
+                    "error": "One of the fields is incorre"
+                }, status=403) 
             return JsonResponse({
-                "message": "Success",
                 "story": fmean([rating.story for rating in novel.novel_ratings.all()]),
                 "characters": fmean([rating.characters for rating in novel.novel_ratings.all()]),
                 "world": fmean([rating.world for rating in novel.novel_ratings.all()]),
                 "writing": fmean([rating.writing for rating in novel.novel_ratings.all()]),
                 "average": fmean([rating.average_rating for rating in novel.novel_ratings.all()]),
+                "madeRating": True,
+                "count": novel.novel_ratings.count()
 
             })
 
         else:
-            print(all([story, characters, world, writing]))
-            print([story, characters, world, writing])
+
             return JsonResponse({
                 "error": "Invalid Form"
             }, status=403)
-    return JsonResponse({
-                "message": "Success",
+    
+    if len(novel.novel_ratings.all()) > 0:
+        return JsonResponse({
                 "story": fmean([rating.story if rating else 0 for rating in novel.novel_ratings.all()]),
                 "characters": fmean([rating.characters if rating else 0 for rating in novel.novel_ratings.all()]),
                 "world": fmean([rating.world if rating else 0 for rating in novel.novel_ratings.all()]),
                 "writing": fmean([rating.writing if rating else 0 for rating in novel.novel_ratings.all()]),
                 "average": fmean([rating.average_rating if rating else 0 for rating in novel.novel_ratings.all()]),
+                "madeRating": any(i.user == request.user for i in novel.novel_ratings.all()),
+                "count": novel.novel_ratings.count()
 
             })
-
+    return JsonResponse({
+                "story": 5,
+                "characters": 5,
+                "world": 5,
+                "writing": 5,
+                "average": 5,
+                "madeRating": False,
+                "count": 0
+    })
 
 def follow(request, username):
-    user = User.objects.get(username=username)
+    user = get_object_or_404(User, username=username)
     if user == request.user:
         return JsonResponse({"error": "You can't follow yourself"}, status=403)
     if not request.user.is_authenticated:
@@ -82,7 +97,7 @@ def follow(request, username):
 
 def profile(request, username):
     try:
-        user = User.objects.get(username=username)
+        user = get_object_or_404(User, username=username)
         novels = Novel.objects.filter(user=user).order_by('-id')
         return render(
             request, 
@@ -99,32 +114,64 @@ def edit_profile(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
     
+    user = request.user
+
     if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-
-        if password != confirmation:
-            return render(
-                request, "novel/edit_profile.html", {"message": "Passwords must match", "user": request.user}
-            )
-
+        form = EditProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            '''
+            username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
+            gender = form.cleaned_data['gender']
+            user_image = form.cleaned_data['user_image']
+            about = form.cleaned_data['about']
+            date_of_birth = form.cleaned_data['date_of_birth']
+            location = form.cleaned_data['location']
+            '''
+        else:
+            return render(request, "novel/edit_profile.html",{ 
+            "form": EditProfileForm(initial={
+                'username': user.username,
+                'email': user.email,
+                'gender': user.gender,
+                'location': user.location,
+                'date_of_birth': user.date_of_birth,
+                'about': user.about,
+                'user_image': user.user_image
+            }),
+            "errors": form.errors
+            })    
         try:
-            user = User.objects.get(pk=request.user.id)
+            '''
             user.username = username
             user.email = email
-            if password:
-                user.set_password(password)
-            user.save()
-            login(request, user)
+            user.gender = gender
+            user.about = about
+            user.date_of_birth = date_of_birth
+            user.location = location
+
+            if user_image:
+                user.user_image = user_image
+            '''
+            form.save()
+
             return HttpResponseRedirect(reverse("profile", kwargs={"username": user.username}))
         except IntegrityError:
             return render(
                 request, "novel/edit_profile.html", {"message": "Username already taken", "user": request.user}
             )
     else:
-        return render(request, "novel/edit_profile.html", {"user": request.user})
+        return render(request, "novel/edit_profile.html", {
+ 
+            "form": EditProfileForm(initial={
+                'username': user.username,
+                'email': user.email,
+                'gender': user.gender,
+                'location': user.location,
+                'date_of_birth': user.date_of_birth,
+                'about': user.about,
+                'user_image': user.user_image
+            })})
 
 def bookmarks(request):
     if not request.user.is_authenticated:
@@ -334,13 +381,13 @@ def compose(request, page):
                 post = Comment(
                     user=request.user,
                     comment=data["text"],
-                    novel=Novel.objects.filter(pk=int(data["id"]))[0]
+                    novel=get_object_or_404(Novel, pk=int(data["id"]))
                 )
             else:
                 post = Comment(
                     user=request.user,
                     comment=data["text"],
-                    chapter=Chapter.objects.filter(pk=int(data["id"]))[0]
+                    chapter=get_object_or_404(Chapter, pk=int(data["id"]))
             )
 
             post.save()
@@ -361,7 +408,7 @@ def reply(request, id):
     data = json.loads(request.body)
     try: 
         if data["text"]:
-            parent = Comment.objects.get(pk=id)
+            parent = get_object_or_404(Comment, pk=id)
             post = Comment(
                 user=request.user,
                 comment=data["text"],
@@ -395,7 +442,7 @@ def comments(request, view, page_id,page_nr):
 
 
 def like(request, id):
-    comment = Comment.objects.get(pk=id)
+    comment = get_object_or_404(Comment, pk=id)
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not login"}, status=400)
 
@@ -409,7 +456,7 @@ def like(request, id):
     return JsonResponse({"message": "Like has been removed/added"})
 
 def dislike(request, id):
-    comment = Comment.objects.get(pk=id)
+    comment = get_object_or_404(Comment, pk=id)
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not login"}, status=400)
 
@@ -430,7 +477,7 @@ def edit_comments(request, id):
         return JsonResponse({"error": "User must login"}, status=400)
 
     try:
-        comment = Comment.objects.get(pk=id)
+        comment = get_object_or_404(Comment, pk=id)
 
         if comment.user != request.user:
             return JsonResponse({"error": "Not allowed to edit comment"}, status=401)
@@ -452,7 +499,7 @@ def bookmark(request, id):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User must login"}, status=400)
     try:
-        novel = Novel.objects.get(pk=id)
+        novel = get_object_or_404(Novel, pk=id)
 
         if novel in request.user.bookmarks.all():
             request.user.bookmarks.remove(novel)
@@ -505,7 +552,7 @@ def novels_view(request, order, page_nr):
 
 def chapters_view(request, id, page_nr):
     try:
-        n = Novel.objects.get(pk=id)
+        n = get_object_or_404(Novel, pk=id)
         chapters = Chapter.objects.filter(novel=n).order_by("num")
         c = Paginator(chapters, 100)
         current_chapters = c.page(page_nr)
@@ -531,8 +578,7 @@ def chapters_view(request, id, page_nr):
 
 
 def novel(request, id):
-    novel = Novel.objects.get(pk=id)
-    c = Comment.objects.filter(novel=novel)
+    novel = get_object_or_404(Novel, pk=id)
     chapters = Chapter.objects.filter(novel=novel).order_by("num")[:20]
 
     if len(novel.novel_ratings.all()) > 0:
@@ -548,25 +594,22 @@ def novel(request, id):
     return render(
         request, "novel/novel.html", {
             "novel": novel.serialize(request.user), 
-            "comments": c, 
             "chapters": [chapter.serialize() for chapter in chapters], 
             "chapter_id": chapters[0].id if chapters else 0, 
             "bookmark": novel in request.user.bookmarks.all() if request.user.is_authenticated else False,
             "rating": rating if len(novel.novel_ratings.all()) > 0  else {},
-            "form": RatingForm(),
             
             })
 
 
 
 def chapter(request, id):
-    chap = Chapter.objects.get(pk=id)
-    c = Comment.objects.filter(chapter=chap)
+    chap = get_object_or_404(Chapter, pk=id)
     chap.views += 1
 
     chap.save()
     return render(
-        request, "novel/chapter.html", {"chapter": chap.view(), "comments": c}
+        request, "novel/chapter.html", {"chapter": chap.view(),}
     )
 
 
@@ -621,7 +664,7 @@ def register(request):
 
 @login_required
 def delete(request, view, id):
-    object = Novel.objects.get(pk=id) if view == 'novel' else Chapter.objects.get(pk=id)
+    object = get_object_or_404(Novel, pk=id) if view == 'novel' else get_object_or_404(Chapter, pk=id)
     user = object.user if view == 'novel' else object.novel.user
     if request.user != user:
         return HttpResponseRedirect(reverse('index'))
