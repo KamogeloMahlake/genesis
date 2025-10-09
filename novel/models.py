@@ -47,7 +47,7 @@ class Novel(models.Model):
     creator = models.CharField(max_length=50, default="Admin", blank=True, null=True)
     title = models.CharField(max_length=1000, unique=True)
     description = models.TextField(blank=True, null=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     novel_image = models.ImageField(upload_to="novel-images/", blank=True, null=True)
     status = models.BooleanField(default=False)
 
@@ -83,7 +83,7 @@ class Novel(models.Model):
 class Chapter(models.Model):
     title = models.TextField()
     num = models.IntegerField()
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
     novel = models.ForeignKey(Novel, on_delete=models.CASCADE, related_name="chapters")
     views = models.IntegerField(default=0, blank=True, null=True)
@@ -148,7 +148,7 @@ class Comment(models.Model):
         null=True,
     )
     comment = models.TextField()
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     parent_comment = models.ForeignKey(
         "self", on_delete=models.CASCADE, related_name="replies", null=True, blank=True
     )
@@ -206,3 +206,18 @@ class Rating(models.Model):
     average_rating = models.PositiveIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
+
+class Message(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey("User", on_delete=models.PROTECT, related_name="messages_sent")
+    recipient = models.ManyToManyField("User", related_name="message_recieved")
+    body = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    parent_message = models.ForeignKey("self", blank=True, on_delete=models.PROTECT, related_name="replys")
+
+    def send_message(from_user, to_user, body, parent=None):
+        sender_message = Message(user=from_user, sender=from_user, recipient=to_user, body=body, parent_message=parent)
+        sender_message.save()
+
+    
