@@ -25,7 +25,7 @@
         </a>
       </td>
       <td>
-        <a class="btn btn-primary">
+        <a  href="{% url 'create_chapter' id=novel.id %}" class="btn btn-primary">
           Add Chapter    
         </a>
       </td>
@@ -101,6 +101,78 @@
       {% endfor %}
     </div>
   </div>
+  <p style="background-color: black;" class="d-grid gap-2 d-md-block">
+    <a style="width: 100%;" class="btn" data-bs-toggle="collapse" href="#ratings" role="button" aria-expanded="false" aria-controls="ratings">
+      Ratings
+    </a>
+  </p>
+  
+  <div id="ratings" class="collapse">
+    <div class=" card card-body">
+      <h5 class="card-title">
+        Story:
+        <span class="fa fa-star {% if rating.story > 0 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 1 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 2 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 3 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.story > 4 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 5 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 6 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 7 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.story > 8 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.story > 9 %} checked {% endif %}"></span>
+      </h5>
+      <h5 class="card-title">
+        World:
+        <span class="fa fa-star {% if rating.world > 0 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 1 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 2 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 3 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.world > 4 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 5 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 6 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 7 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.world > 8 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.world > 9 %} checked {% endif %}"></span>
+      </h5>
+      <h5 class="card-title">
+        Characters:
+        <span class="fa fa-star {% if rating.characters > 0 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 1 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 2 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 3 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.characters > 4 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 5 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 6 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 7 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.characters > 8 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.characters > 9 %} checked {% endif %}"></span>
+      </h5>
+      <h5 class="card-title">
+        Writing:
+        <span class="fa fa-star {% if rating.writing > 0 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 1 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 2 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 3 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.writing > 4 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 5 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 6 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 7 %} checked {% endif %}"></span>
+        <span class="fa fa-star {% if rating.writing > 8 %} checked {% endif %}" ></span>
+        <span class="fa fa-star {% if rating.writing > 9 %} checked {% endif %}"></span>
+      </h5>
+      
+    </div>
+    {% if user.is_authenticated %}
+        <button data-bs-toggle="collapse" href="#form" role="button" aria-expanded="false" aria-controls="form" class="btn" id="rate">Rate Novel</button>
+
+    <form action="{%url 'rating' id=novel.id %}" id="form" class="collapse card-body" method="post">
+      {{form}}
+      <button class="btn btn-primary">Rate</button>
+    </form>
+    {% endif %}
+
+  </div>
 </div>
 
 <div id="details" class="tabcontent">
@@ -124,8 +196,36 @@
 <div class="tabcontent" id="comments">
 </div>
 <script>
-  
+  const rate = document.getElementById('rate');
+  const form = document.getElementById('form');
 
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const story = document.getElementById('id_story');
+    const characters = document.getElementById('id_characters');
+    const world = document.getElementById('id_world');
+    const writing = document.getElementById('id_writing');
+
+    fetch('/rating/{{novel.id}}', {
+      method: 'POST', 
+      body: JSON.stringify({
+        story: story.value,
+        characters: characters.value,
+        world: world.value,
+        writing: writing.value
+      })
+    }).then( r => r.json()).then(d => {
+      /*rate.click();
+      story.value = '';
+      characters.value = '';
+      world.value = '';
+      writing.value ='';*/
+      window.location.reload();
+    }).catch(e => console.log(e))
+  });
+  rate.addEventListener('click', () => {
+    rate.textContent = rate.textContent === 'Rate Novel' ? 'Close Form' : 'Rate Novel';
+  })
   const bookmark = document.getElementById('change');
   
   bookmark.addEventListener('click', async() => {

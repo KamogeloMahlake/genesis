@@ -19,10 +19,13 @@ urlpatterns = [
     path("reply/<int:id>", views.reply, name="reply"),
     path("bookmark/<int:id>", views.bookmark, name="bookmark"),
     path("create_novel", views.create_novel, name="create_novel"),
+    path("create_chapter/<int:id>", views.create_chapter, name="create_chapter"),
     path("profile/<str:username>", views.profile, name="profile"),
     path("edit_profile", views.edit_profile, name="edit_profile"),
     path("bookmarks", views.bookmarks, name="bookmarks"),
     path("follow/<str:username>", views.follow, name="follow" ),
     path("delete/<str:view>/<int:id>", views.delete, name="delete"),
     path("edit_novel/<int:id>", views.edit_novel, name="edit_novel"),
+    path("edit_chapter/<int:id>", views.edit_chapter, name="edit_chapter"),
+    path("rating/<int:id>", views.rating, name="rating"),
 ]   

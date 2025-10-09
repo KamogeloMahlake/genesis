@@ -19,7 +19,7 @@ class User(AbstractUser):
         return {
             "id": self.id,
             "username": self.username,
-            "image": self.user_image.url if self.user_image else "/media/avatarnew.png",
+            "image": self.user_image.url if self.user_image else "/media/placeholder.png",
             "gender": self.gender if self.gender else '--',
             "date_joined": self.date_joined,
             "comments_count": self.user_comments.count(),
@@ -56,7 +56,7 @@ class Novel(models.Model):
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "image": self.novel_image.url if self.novel_image else None,
+            "image": self.novel_image.url if self.novel_image else '/media/placeholder.png',
             "comments": self.novel_comments.count(),
             "total_comments": self.novel_comments.count() + sum(chapter.chapter_comments.count() for chapter in self.chapters.all()),
             "views": sum(chapter.views for chapter in self.chapters.all()) ,
@@ -66,7 +66,7 @@ class Novel(models.Model):
             "tags": [tag.name for tag in self.tags.all()],
             "genres": [genre.name for genre in self.genres.all()],
             "average_rating": round(
-                sum(rating.rating for rating in self.novel_ratings.all())
+                sum(rating.average_rating for rating in self.novel_ratings.all())
                 / self.novel_ratings.count(),
                 1,
             )
@@ -159,7 +159,7 @@ class Comment(models.Model):
         return {
             "id": self.id,
             "user": self.user.username,
-            "image": self.user.user_image.url if self.user.user_image else '/media/avatarnew.png',
+            "image": self.user.user_image.url if self.user.user_image else '/media/placeholder.png',
             "comment": self.comment,
             "date": self.date,
             "likesCount": self.like.count(),

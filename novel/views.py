@@ -7,9 +7,64 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from novel.models import Comment, User, Novel, Chapter, Rating
+from novel.forms import NewNovelForm, NewChapterForm, RatingForm
+from statistics import fmean
 
-from novel.models import Comment, User, Novel, Chapter
-from novel.forms import NewNovelForm
+@csrf_exempt
+@login_required
+def rating(request, id):
+    novel = get_object_or_404(Novel, pk=id)
+    if any(i.user == request.user for i in novel.novel_ratings.all()):
+        return JsonResponse({"error": "Already made a rating"}, status=403)
+    
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        story = int(data.get('story', False)) 
+        characters = int(data.get("characters", False))
+        world = int(data.get("world", False)) 
+        writing = int(data.get("writing", False))
+
+        if all([story, characters, world, writing]):
+            rating = Rating(
+                novel=novel,
+                user=request.user,
+                story=story,
+                characters=characters,
+                world=world,
+                writing=writing,
+                average_rating=fmean([story, characters, world, writing])
+            )
+            rating.save()
+
+            return JsonResponse({
+                "message": "Success",
+                "story": fmean([rating.story for rating in novel.novel_ratings.all()]),
+                "characters": fmean([rating.characters for rating in novel.novel_ratings.all()]),
+                "world": fmean([rating.world for rating in novel.novel_ratings.all()]),
+                "writing": fmean([rating.writing for rating in novel.novel_ratings.all()]),
+                "average": fmean([rating.average_rating for rating in novel.novel_ratings.all()]),
+
+            })
+
+        else:
+            print(all([story, characters, world, writing]))
+            print([story, characters, world, writing])
+            return JsonResponse({
+                "error": "Invalid Form"
+            }, status=403)
+    return JsonResponse({
+                "message": "Success",
+                "story": fmean([rating.story if rating else 0 for rating in novel.novel_ratings.all()]),
+                "characters": fmean([rating.characters if rating else 0 for rating in novel.novel_ratings.all()]),
+                "world": fmean([rating.world if rating else 0 for rating in novel.novel_ratings.all()]),
+                "writing": fmean([rating.writing if rating else 0 for rating in novel.novel_ratings.all()]),
+                "average": fmean([rating.average_rating if rating else 0 for rating in novel.novel_ratings.all()]),
+
+            })
+
 
 def follow(request, username):
     user = User.objects.get(username=username)
@@ -33,7 +88,7 @@ def profile(request, username):
             request, 
             "novel/profile.html", 
             {
-                "user": user.serialize(request.user), 
+                "profile_user": user.serialize(request.user), 
                 "novels": [novel.serialize(request.user) for novel in novels], 
                 "is_own_profile": request.user == user,
             })
@@ -78,6 +133,85 @@ def bookmarks(request):
     novels = request.user.bookmarks.all().order_by('-id')
     return render(request, "novel/bookmarks.html", {"novels": [novel.serialize(request.user) for novel in novels]})    
 
+
+@csrf_exempt
+@login_required
+def create_chapter(request, id):
+    if request.method == "POST":
+        form = NewChapterForm(request.POST)
+        novel = get_object_or_404(Novel, pk=id)
+        
+        if form.is_valid():
+            chapter = Chapter(**form.cleaned_data, novel=novel)
+            chapter.save()
+            
+            return HttpResponseRedirect(reverse('chapter', kwargs={'id': chapter.id}))
+        
+        else:
+            return render(
+                request, 
+                'novel/create_chapter.html',
+                {
+                    'form': NewChapterForm(),
+                    'errors': form.errors
+                }
+            )
+ 
+    return render(
+        request, 
+        'novel/create_chapter.html',
+        {
+            'form': NewChapterForm()
+        }
+    )
+
+@csrf_exempt
+@login_required
+def edit_chapter(request, id):
+    chapter = get_object_or_404(Chapter, pk=id)
+    if request.method == "POST":
+        form = NewChapterForm(request.POST)
+
+        if form.is_valid():
+            chapter.title = form.cleaned_data["title"]
+            chapter.num = form.cleaned_data["num"]
+            chapter.content = form.cleaned_data["content"]
+
+            chapter.save()
+
+            return HttpResponseRedirect(reverse("chapter", kwargs={"id": chapter.id}))
+        
+        else:
+            return render(
+                request, 
+                'novel/create_chapter.html',
+                {
+                    'form': NewChapterForm(initial={
+                        'title': chapter.title,
+                        'num': chapter.num,
+                        'content': chapter.content
+                    }),
+                    'errors': form.errors,
+                    'edit': True,
+                    'id': chapter.id
+                }
+            )   
+
+    return render(
+                request, 
+                'novel/create_chapter.html',
+                {
+                    'form': NewChapterForm(initial={
+                        'title': chapter.title,
+                        'num': chapter.num,
+                        'content': chapter.content
+                    }),
+                    'edit': True,
+                    'id': chapter.id
+
+                }
+            )
+
 @csrf_exempt
 @login_required(redirect_field_name=None, login_url='/login')
 def create_novel(request):
@@ -118,12 +252,16 @@ def edit_novel(request, id):
             genres = form.cleaned_data["genres"]
             novel_image = form.cleaned_data["novel_image"]
 
-
-            novel.title = title
-            novel.description = description
-            novel.novel_image = novel_image
-            novel.genres.clear()
-            novel.genres.set(genres)
+            if title:
+                novel.title = title
+            if description:
+                novel.description = description
+            if novel_image:
+                novel.novel_image = novel_image
+            
+            if genres:
+                novel.genres.clear()
+                novel.genres.set(genres)
             novel.save()
 
             return HttpResponseRedirect(reverse('novel', kwargs={'id': id}))
@@ -151,8 +289,6 @@ def edit_novel(request, id):
             (initial={
                 'title': novel.title,
                 'description': novel.description,
-                'genres': novel.genres.all(),
-                'novel_image': novel.novel_image
             }),
             'edit': True,
         }
@@ -395,12 +531,32 @@ def chapters_view(request, id, page_nr):
 
 
 def novel(request, id):
-    n = Novel.objects.get(pk=id)
-    c = Comment.objects.filter(novel=n)
-    chapters = Chapter.objects.filter(novel=n).order_by("num")[:20]
+    novel = Novel.objects.get(pk=id)
+    c = Comment.objects.filter(novel=novel)
+    chapters = Chapter.objects.filter(novel=novel).order_by("num")[:20]
+
+    if len(novel.novel_ratings.all()) > 0:
+        rating = {
+            "story": fmean([rating.story if rating.story else 0 for rating in novel.novel_ratings.all()]),
+            "characters": fmean([rating.characters if rating.characters else 0 for rating in novel.novel_ratings.all()]),
+            "world": fmean([rating.world if rating.world else 0 for rating in novel.novel_ratings.all()]),
+            "writing": fmean([rating.writing if rating.writing else 0 for rating in novel.novel_ratings.all()]),
+            "average": fmean([rating.average_rating if rating.average_rating else 0 for rating in novel.novel_ratings.all()]),
+        }
+
+    print(novel.novel_ratings.all())
     return render(
-        request, "novel/novel.html", {"novel": n.serialize(request.user), "comments": c, "chapters": [chapter.serialize() for chapter in chapters], "chapter_id": chapters[0].id if chapters else 0, "bookmark": n in request.user.bookmarks.all() if request.user.is_authenticated else False}
-    )
+        request, "novel/novel.html", {
+            "novel": novel.serialize(request.user), 
+            "comments": c, 
+            "chapters": [chapter.serialize() for chapter in chapters], 
+            "chapter_id": chapters[0].id if chapters else 0, 
+            "bookmark": novel in request.user.bookmarks.all() if request.user.is_authenticated else False,
+            "rating": rating if len(novel.novel_ratings.all()) > 0  else {},
+            "form": RatingForm(),
+            
+            })
+
 
 
 def chapter(request, id):

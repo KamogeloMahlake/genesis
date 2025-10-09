@@ -2,23 +2,23 @@
 {% load static %}
 
 {% block title %}
-  Genesis | {{user.username}}
+  Genesis | {{profile_user.username}}
 {% endblock %}
 
 {% block body %}
 <div>
-  <a href="{% url 'index'%}">Genesis</a> >> <span>{{user.username}}</span>
+  <a href="{% url 'index'%}">Genesis</a> >> <span>{{profile_user.username}}</span>
 </div>
 <hr>
 
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
   <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <img src="{{user.image}}" style="width: 7.5rem; height: 7.5rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
-    <h1>{{user.username}}</h1>
+    <img src="{{profile_user.image}}" style="width: 7.5rem; height: 7.5rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
+    <h1>{{profile_user.username}}</h1>
   </div>
   <div>
-    <button id="follow" class="btn {% if user.is_following %} btn-danger{% else %} btn-primary {% endif %}" >
-    {% if user.is_following %}
+    <button id="follow" class="btn {% if profile_user.is_following %} btn-danger{% else %} btn-primary {% endif %}" >
+    {% if profile_user.is_following %}
       <i class="fa fa-minus" aria-hidden="true"></i>
       Unfollow
     {% else %}
@@ -30,16 +30,16 @@
 </div>
 <div style="display: flex;  justify-content: space-between; align-items: center;">
   <div style="display: flex; flex-direction: column;  justify-content: space-between; align-items: center;">
-    <p>Member since</p> <p><strong>{{user.date_joined}}</strong></p>
+    <p>Member since</p> <p><strong>{{profile_user.date_joined}}</strong></p>
   </div>
   <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
-    <p>Followers</p> <p><strong id="followers_count">{{user.followers_count}}</strong></p>
+    <p>Followers</p> <p><strong id="followers_count">{{profile_user.followers_count}}</strong></p>
   </div>
   <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
-    <p>Following</p> <p><strong id="following_count">{{user.following_count}}</strong></p>
+    <p>Following</p> <p><strong id="following_count">{{profile_user.following_count}}</strong></p>
   </div>
   <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
-    <p>Comments</p> <p><strong>{{user.comments|length}}</strong></p>
+    <p>Comments</p> <p><strong>{{profile_user.comments|length}}</strong></p>
   </div>
 </div>
 
@@ -58,22 +58,22 @@
       <hr>
       <div style="display: flex; justify-content: space-between;">
         <p>Last Active:</p>
-        <p>{{user.last_login}}</p>
+        <p>{{profile_user.last_login}}</p>
         <p></p>        
       </div>
       <div style="display: flex; justify-content: space-between;">
         <p>Birthday:</p>
-        <p>{{user.birthday}}</p>
+        <p>{{profile_user.birthday}}</p>
         <p></p>        
       </div>
       <div style="display: flex; justify-content: space-between;">
         <p>Gender:</p>
-        <p>{{user.gender}}</p>
+        <p>{{profile_user.gender}}</p>
         <p></p>        
       </div>
       <div style="display: flex; justify-content: space-between;">
         <p>Location:</p>
-        <p>{{user.location}}</p>
+        <p>{{profile_user.location}}</p>
         <p></p>        
       </div>
 
@@ -84,7 +84,7 @@
       <h3><strong>About</strong></h3>
       <hr>
       <p>
-        {{user.about}}
+        {{profile_user.about}}
       </p>
 
     </div>
@@ -101,12 +101,12 @@
           </tr>
           <tr>
             <td>Total Pageviews:</td>
-            <td>{{user.total_views}}</td>
+            <td>{{profile_user.total_views}}</td>
             <td></td>
           </tr>
           <tr>
             <td>Total Series Comments:</td>
-            <td>{{user.novel_comments}}</td>
+            <td>{{profile_user.novel_comments}}</td>
             <td></td>
           </tr>
           
@@ -173,7 +173,7 @@
           </td>
         </tr>
         {% empty %}
-          {{user.username}} hasn't written anything
+          {{profile_user.username}} hasn't written anything
         {% endfor %}
         </tbody>
     </table>
@@ -213,7 +213,7 @@
         </div>
       </div>
     {% empty %}
-      {{user.username}} hasn't written anything
+      {{profile_user.username}} hasn't written anything
     {% endfor %}
   {% endif %}
 </div>
@@ -224,7 +224,7 @@
   const followingCount = document.getElementById('following_count');
 
   follow.addEventListener('click', async () => {
-    let reponse = await fetch(`/follow/{{user.username}}`);
+    let reponse = await fetch(`/follow/{{profile_user.username}}`);
     let data = await reponse.json();
 
     if (data.error) {

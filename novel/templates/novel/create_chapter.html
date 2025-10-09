@@ -1,0 +1,31 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+  Genesis | {% if edit %}Edit {% else %}Create{% endif %} Chapter
+{% endblock %}
+{% block body %}
+
+<div style="display: flex; justify-content: space-between;">
+  <p style="color: red">
+      {{errors}}
+  </p>
+  {% if edit %}
+  <a href="{% url 'delete' view='chapter' id=id %}" class="btn btn-danger">
+              Delete
+  </a>
+  {% endif %}
+</div>
+
+{% if edit %}
+  <h1><strong>Edit Chapter</strong></h1>
+{% else %}
+<h1><strong>Create a New Chapter</strong></h1>
+{% endif %}
+<div>
+  <form method="POST" enctype="multipart/form-data" style="margin-top: 1rem;">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit" class="btn btn-primary" style="border-radius: 15px; margin-top: 1rem;">{% if edit %}Update{% else %}Create{% endif %} Chapter</button>
+  </form>
+</div>
+{% endblock %}
