@@ -28,9 +28,9 @@ MEDIA_URL = "/media/"
 SECRET_KEY = "django-insecure--1*jw#e738=kl@@bbb6k07&abxb3a00%$z(q5ukdzv7e5hsr-0"
 AUTH_USER_MODEL = "novel.User"
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition

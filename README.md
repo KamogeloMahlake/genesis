@@ -55,6 +55,25 @@ Here are descriptions of the files you requested, suitable for inclusion in your
   - Allows switching between different sections such as "Details", "Comments", "Ratings", or "Chapters" without full-page reloads.
   - Listens for tab clicks and updates the visible content accordingly, improving user experience by making navigation seamless.
 
+- `media/`: Directory for user-uploaded files and images.
+  - `image.py`: (If present) Custom logic for image handling.
+  - `novel-images/`: Contains image files associated with novels.
+- `novel/`: Django app for managing novels.
+  - `__init__.py`: App package marker.
+  - `admin.py`: Django admin interface configuration for the app.
+  - `apps.py`: App configuration.
+  - `models.py`: Database models for novels and related entities.
+  - `tests.py`: Unit tests for the app.
+  - `urls.py`: URL routing for the app.
+  - `views.py`: View logic for handling requests and responses.
+  - `migrations/`: Database migration files.
+  - `static/novel/`: Static files (CSS, JS, images) for the app.
+    - `styles.css`: Main stylesheet for the novel app UI.
+    - `comments.js`: Handles dynamic comment functionality for novels.
+    - `ratings.js`: Manages user rating interactions for novels.
+    - `tabs.js`: Provides tabbed navigation for novel details pages.
+  - `templates/novel/`: HTML templates for rendering views.
+
 
 
 ## How to Run
@@ -65,6 +84,7 @@ Here are descriptions of the files you requested, suitable for inclusion in your
     pip install -r requirements.txt
     ```
 2. **Apply Migrations**
+    - Make sure PostgreSQL is running.
     ```bash
     python manage.py makemigrations
     python manage.py migrate
@@ -91,10 +111,17 @@ Here are descriptions of the files you requested, suitable for inclusion in your
 ## Additional Information
 
 - Customizable reading interface (font, color, layout) for accessibility.
-- Built with Python, Django, HTML, JavaScript, and CSS.
-- For further details or troubleshooting, see the issues page or contact the maintainer.
+- Built with Python, Django, HTML, JavaScript, React, and CSS.
+
+## Environment Variables (`.env`)
+The `.env` file in the project root contains sensitive configuration for your Django and database setup. It should never be committed to version control.
+
+
+- `DB_ENGINE`: The database backend to use (e.g., PostgreSQL).
+- `DB_NAME`: Name of your database.
+- `DB_USER`: Database username.
+- `DB_PASSWORD`: Database password (keep this secure!).
+- `DB_HOST`: Host address for the database server.
+- `DB_PORT`: Port number for the database server.
 
 ---
-
-**This README covers the core structure and features. For more, explore the [codebase on GitHub](https://github.com/KamogeloMahlake/genesis).**  
-Let me know if you want more technical deep-dives or specific feature documentation!
