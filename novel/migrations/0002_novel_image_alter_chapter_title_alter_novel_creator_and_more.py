@@ -6,38 +6,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0001_initial'),
+        ("novel", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='novel',
-            name='image',
+            model_name="novel",
+            name="image",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='chapter',
-            name='title',
+            model_name="chapter",
+            name="title",
             field=models.TextField(),
         ),
         migrations.AlterField(
-            model_name='novel',
-            name='creator',
-            field=models.CharField(blank=True, default='Admin', max_length=50, null=True),
+            model_name="novel",
+            name="creator",
+            field=models.CharField(
+                blank=True, default="Admin", max_length=50, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='novel',
-            name='description',
+            model_name="novel",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='novel',
-            name='novel_image',
-            field=models.ImageField(blank=True, null=True, upload_to='novel-images/'),
+            model_name="novel",
+            name="novel_image",
+            field=models.ImageField(blank=True, null=True, upload_to="novel-images/"),
         ),
         migrations.AlterField(
-            model_name='novel',
-            name='title',
+            model_name="novel",
+            name="title",
             field=models.CharField(max_length=1000, unique=True),
         ),
     ]

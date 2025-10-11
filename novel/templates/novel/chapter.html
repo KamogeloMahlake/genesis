@@ -17,21 +17,20 @@
 <hr>
 
 
-<div class="none" id="index">
+<div style="text-align: center;" class="none" id="index">
   <div style="margin-bottom: auto">
     <h4>{{chapter.title}}</h4>
     <a href="{%url 'novel' id=chapter.novel_id %}"><p>{{chapter.novel_name}}</p></a>
   </div>
 
 
-  <div style="margin-top: auto">
-    <p>{{chapter.views}}</p>
+  <div style="margin-top: auto" class="d-flex justify-content-evenly">
     {% if chapter.previous %}
-      <a href="{% url 'chapter' id=chapter.previous%}"><button>Previous</button></a> 
+      <a class="btn btn-primary" href="{% url 'chapter' id=chapter.previous%}">Previous</a> 
     {% endif%}
-    <a href="{% url 'chapters' id=chapter.novel_id page_nr=1%}" /><button>Chapter List</button></a>
+    <a class="btn btn-primary" href="{% url 'chapters' id=chapter.novel_id page_nr=1%}" >Chapter List</a>
     {% if chapter.next %}
-      <a href="{% url 'chapter' id=chapter.next%}"><button>Next</button></a> 
+      <a class="btn btn-primary" href="{% url 'chapter' id=chapter.next%}">Next</a> 
     {% endif%}
   </div>
 </div>
@@ -39,8 +38,24 @@
 <hr>
 
 <div id="content">{{chapter.content | safe }}</div>
+<div style="margin-top: auto" class="d-flex justify-content-evenly">
+    {% if chapter.previous %}
+      <a class="btn btn-primary" href="{% url 'chapter' id=chapter.previous%}">Previous</a> 
+    {% endif%}
+    <a class="btn btn-primary" href="{% url 'chapters' id=chapter.novel_id page_nr=1%}" >Chapter List</a>
+    {% if chapter.next %}
+      <a class="btn btn-primary" href="{% url 'chapter' id=chapter.next%}">Next</a> 
+    {% endif%}
+</div>
+<p>
+<i class="fa fa-eye" aria-hidden="true"></i> {{chapter.views}}
+<i class="fa fa-comments" aria-hidden="true"></i> {{chapter.comments}}
+</p>
 <hr>
+
+
 <input hidden id="page" name="chapter" value="{{chapter.id}}" />
+
 <div id="comments">
 </div>
 
@@ -48,13 +63,4 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" src="{% static 'novel/comments.js' %}"></script>
-<script>
-  const index = document.getElementById("index");
-  const content = document.getElementById("content");
-
-  content.addEventListener("click", () => {
-    index.classList.toggle("none");
-    index.classList.toggle("display-index");
-  })
-</script>
 {% endblock %}

@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0004_user_bookmarks'),
+        ("novel", "0004_user_bookmarks"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='bookmarks',
-            field=models.ManyToManyField(blank=True, related_name='bookmark_by', to='novel.novel'),
+            model_name="user",
+            name="bookmarks",
+            field=models.ManyToManyField(
+                blank=True, related_name="bookmark_by", to="novel.novel"
+            ),
         ),
     ]

@@ -18,12 +18,6 @@
           Edit Novel
         </a>
       </td>
-      
-      <td>
-        <a href="{% url 'chapters' id=novel.id page_nr=1%}" class="btn btn-primary">
-          View Chapters
-        </a>
-      </td>
       <td>
         <a  href="{% url 'create_chapter' id=novel.id %}" class="btn btn-primary">
           Add Chapter    
@@ -59,10 +53,6 @@
     {% else %}
         Bookmark
     {% endif %}
-    </a>
-    
-    <a class="list-group-item">
-        Subcribe
     </a>
   </ul>
 </div>
@@ -121,7 +111,7 @@
   <a class="list-group-item list-group-item-action" href="{% url 'chapter' id=chapter.id %}">
     <div class="d-flex w-100 justify-content-between">
       <h5 class="mb-1">{{chapter.title}}</h5>
-      <small class="text-body-secondary">{{chapter.date}} days ago</small>
+      <small class="text-body-secondary">{{chapter.date}}</small>
     </div>
   </a>
   {% endfor %}
@@ -131,6 +121,7 @@
 
 <div class="tabcontent" id="comments">
 </div>
+
 <script>
   
   const bookmark = document.getElementById('change');

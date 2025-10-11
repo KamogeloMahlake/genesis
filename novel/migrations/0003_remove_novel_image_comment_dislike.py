@@ -7,17 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0002_novel_image_alter_chapter_title_alter_novel_creator_and_more'),
+        ("novel", "0002_novel_image_alter_chapter_title_alter_novel_creator_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='novel',
-            name='image',
+            model_name="novel",
+            name="image",
         ),
         migrations.AddField(
-            model_name='comment',
-            name='dislike',
-            field=models.ManyToManyField(blank=True, related_name='dislikes', to=settings.AUTH_USER_MODEL),
+            model_name="comment",
+            name="dislike",
+            field=models.ManyToManyField(
+                blank=True, related_name="dislikes", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

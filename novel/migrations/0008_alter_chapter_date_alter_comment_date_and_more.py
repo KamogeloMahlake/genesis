@@ -8,36 +8,71 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0007_rename_rating_rating_average_rating_and_more'),
+        ("novel", "0007_rename_rating_rating_average_rating_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='chapter',
-            name='date',
+            model_name="chapter",
+            name="date",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AlterField(
-            model_name='comment',
-            name='date',
+            model_name="comment",
+            name="date",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AlterField(
-            model_name='novel',
-            name='date',
+            model_name="novel",
+            name="date",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.CreateModel(
-            name='Message',
+            name="Message",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body', models.TextField(blank=True)),
-                ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('read', models.BooleanField(default=False)),
-                ('parent_message', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='replys', to='novel.message')),
-                ('recipient', models.ManyToManyField(related_name='message_recieved', to=settings.AUTH_USER_MODEL)),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='messages_sent', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='messages', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("body", models.TextField(blank=True)),
+                ("timestamp", models.DateTimeField(auto_now_add=True)),
+                ("read", models.BooleanField(default=False)),
+                (
+                    "parent_message",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="replys",
+                        to="novel.message",
+                    ),
+                ),
+                (
+                    "recipient",
+                    models.ManyToManyField(
+                        related_name="message_recieved", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "sender",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="messages_sent",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="messages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

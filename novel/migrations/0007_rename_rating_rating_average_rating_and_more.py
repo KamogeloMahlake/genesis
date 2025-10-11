@@ -7,33 +7,57 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0006_user_about_user_date_of_birth_user_followers_and_more'),
+        ("novel", "0006_user_about_user_date_of_birth_user_followers_and_more"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='rating',
-            old_name='rating',
-            new_name='average_rating',
+            model_name="rating",
+            old_name="rating",
+            new_name="average_rating",
         ),
         migrations.AddField(
-            model_name='rating',
-            name='characters',
-            field=models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)]),
+            model_name="rating",
+            name="characters",
+            field=models.PositiveIntegerField(
+                default=1,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(10),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='rating',
-            name='story',
-            field=models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)]),
+            model_name="rating",
+            name="story",
+            field=models.PositiveIntegerField(
+                default=1,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(10),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='rating',
-            name='world',
-            field=models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)]),
+            model_name="rating",
+            name="world",
+            field=models.PositiveIntegerField(
+                default=1,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(10),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='rating',
-            name='writing',
-            field=models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)]),
+            model_name="rating",
+            name="writing",
+            field=models.PositiveIntegerField(
+                default=1,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(10),
+                ],
+            ),
         ),
     ]

@@ -1,0 +1,14 @@
+{% extends "novel/layout.html" %}
+
+{% block title %}
+  Genesis | Message
+{% endblock %}
+
+{% block body %}
+<form action="{% url 'message' id=id %}" method="POST">
+    <h1>New Direct Message</h1>
+    {% csrf_token %}
+    {{ form }}
+    <button style="display: flex; justify-content: end; align-items: end;" type="submit" class="mt-2 btn btn-primary btn-sm ">Start Direct Message</button>
+</form>
+{% endblock %}

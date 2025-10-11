@@ -7,7 +7,11 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("register", views.register, name="register"),
     path("compose/<str:page>", views.compose, name="compose"),
-    path("comments/<str:view>/<int:page_id>/<int:page_nr>", views.comments, name="comments"),
+    path(
+        "comments/<str:view>/<int:page_id>/<int:page_nr>",
+        views.comments,
+        name="comments",
+    ),
     path("like/<int:id>", views.like, name="like"),
     path("dislike/<int:id>", views.dislike, name="dislike"),
     path("editcomments/<int:id>", views.edit_comments, name="editcomments"),
@@ -23,9 +27,10 @@ urlpatterns = [
     path("profile/<str:username>", views.profile, name="profile"),
     path("edit_profile", views.edit_profile, name="edit_profile"),
     path("bookmarks", views.bookmarks, name="bookmarks"),
-    path("follow/<str:username>", views.follow, name="follow" ),
+    path("follow/<str:username>", views.follow, name="follow"),
     path("delete/<str:view>/<int:id>", views.delete, name="delete"),
     path("edit_novel/<int:id>", views.edit_novel, name="edit_novel"),
     path("edit_chapter/<int:id>", views.edit_chapter, name="edit_chapter"),
     path("rating/<int:id>", views.rating, name="rating"),
-]   
+    path("delete_comment/<int:id>", views.delete_comment, name="delete_comment"),
+]

@@ -7,7 +7,24 @@
 {% block body %}
 <div>
   {% for novel in novels %}
-    <a href="{% url 'novel' id=novel.id %}"><p>{{novel.title}}</p></a>
+      <a class="mb-2" style="display: flex; font-size: 0.8rem" href="{% url 'novel' id=novel.id %}">
+        <img src="{{novel.image}}" style="display: inline-block; width: 4rem; height: 4rem; aspect-ratio: 1; object-fit: cover;" />
+        <div>
+          <h6>{{novel.title}}</h6>
+          <div>
+            <span class="fa fa-star {% if novel.average_rating > 0 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 1 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 2 %} checked {% endif %}"></span>            
+            <span class="fa fa-star {% if novel.average_rating > 3 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel.average_rating > 4 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 5 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 6 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 7 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel.average_rating > 8 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel.average_rating > 9 %} checked {% endif %}"></span>
+          </div>
+        </div>
+      </a>
   {% endfor %}
 </div>
 <nav aria-label="...">

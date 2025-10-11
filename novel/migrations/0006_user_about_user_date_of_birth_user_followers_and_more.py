@@ -7,38 +7,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('novel', '0005_alter_user_bookmarks'),
+        ("novel", "0005_alter_user_bookmarks"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='about',
+            model_name="user",
+            name="about",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='date_of_birth',
+            model_name="user",
+            name="date_of_birth",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='followers',
-            field=models.ManyToManyField(blank=True, related_name='following', to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="followers",
+            field=models.ManyToManyField(
+                blank=True, related_name="following", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='gender',
+            model_name="user",
+            name="gender",
             field=models.CharField(blank=True, max_length=6, null=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='location',
+            model_name="user",
+            name="location",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='user_image',
-            field=models.ImageField(blank=True, null=True, upload_to='user-images/'),
+            model_name="user",
+            name="user_image",
+            field=models.ImageField(blank=True, null=True, upload_to="user-images/"),
         ),
     ]

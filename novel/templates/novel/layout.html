@@ -11,14 +11,54 @@
     </head>
     
     <body>
-      <header>
+      <header class="container">
         <nav class="navbar navbar-dark bg-dark">
           <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'index' %}">Genesis</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
             
+            <div style="display: flex; align-items: center;">
+              <div class="dropdown me-2">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                  {% if user.is_authenticated %}
+                  <img src="{% if user.user_image %}{{user.user_image.url}}{% else %}/media/avatarnew.png {% endif %}" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
+
+                  {% else %}
+                  <i class="fa fa-user-circle"  aria-hidden="true" dp="yes"></i>
+                  {% endif%}
+                </a>
+                <ul class="dropdown-menu">
+                  
+                  {% if user.is_authenticated %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Log Out</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'create_novel' %}">Create Novel</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'bookmarks' %}">Bookmarks</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'profile' username=user.username %}">Profile</a>
+                  </li> 
+                  <li>
+                    <a href="{% url 'edit_profile' %}" class="dropdown-item"> Edit Profile</a>
+                  </li>
+                  {% else %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'login' %}">Log In</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'register' %}">Register</a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+            </div>
+
             <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
               <div class="offcanvas-header">
                 <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">
@@ -46,28 +86,7 @@
                 <div id="search"></div>
                 
                 <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                {% if user.is_authenticated %}
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'create_novel' %}">Create Novel</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'bookmarks' %}">Bookmarks</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'profile' username=user.username %}">Profile</a>
-                  </li> 
-                  
-                {% else %}
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                  </li>
-                {% endif %}
+                
                 </ul>
               </div>
             </div>
@@ -75,13 +94,13 @@
         </nav>
       </header>
       <hr>
-      <main style="margin-top: 1rem" class="container py-5">
+      <main style="margin-top: 1rem" class="container">
           {% block body %}
           {% endblock %}
       </main>
       <hr>
-      <footer>
-        <a href="{% url 'novels' order='-id' page_nr=1 %}">Novels</a>
+      <footer class="container">
+        <a href="{% url 'novels' order='-id' page_nr=1 %}" >Novels</a>
       </footer>
         <script>
           const input = document.getElementById('search-input');
