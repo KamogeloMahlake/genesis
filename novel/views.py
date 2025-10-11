@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from novel.models import Comment, User, Novel, Chapter, Rating
 from novel.forms import NewNovelForm, NewChapterForm, EditProfileForm
@@ -155,7 +156,7 @@ def follow(request, username):
         }
     )
 
-
+@cache_page(60 * 10)
 def profile(request, username):
     try:
         user = get_object_or_404(User, username=username)
@@ -233,7 +234,7 @@ def edit_profile(request):
             },
         )
 
-
+@cache_page(60 * 10)
 def bookmarks(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
@@ -415,6 +416,7 @@ def edit_novel(request, id):
         },
     )
 
+@cache_page(60 * 10)
 
 def search(request, page_nr=0):
     if page_nr > 0:
@@ -603,7 +605,7 @@ def bookmark(request, id):
     except Novel.DoesNotExist:
         return JsonResponse({"error": "Novel does not exist"}, status=404)
 
-
+@cache_page(60 * 60)
 def index(request):
     novels = Novel.objects.all()
     lastest = novels.order_by("-date")[:9]
@@ -621,7 +623,7 @@ def index(request):
         },
     )
 
-
+@cache_page(60 * 60)
 def novels_view(request, order, page_nr):
     try:
         novels = Novel.objects.all().order_by(f"{order}")
@@ -647,7 +649,7 @@ def novels_view(request, order, page_nr):
     except EmptyPage:
         return HttpResponseRedirect(reverse(index))
 
-
+@cache_page(60 * 10)
 def chapters_view(request, id, page_nr):
     try:
         n = get_object_or_404(Novel, pk=id)
@@ -674,7 +676,7 @@ def chapters_view(request, id, page_nr):
     except EmptyPage:
         return HttpResponseRedirect(reverse(novel, kwargs={"id": id}))
 
-
+@cache_page(60 * 10)
 def novel(request, id):
     novel = get_object_or_404(Novel, pk=id)
     chapters = Chapter.objects.filter(novel=novel).order_by("num")[:20]
@@ -730,7 +732,7 @@ def novel(request, id):
         },
     )
 
-
+@cache_page(60 * 10)
 def chapter(request, id):
     chap = get_object_or_404(Chapter, pk=id)
     novel = get_object_or_404(Novel, pk=chap.novel.id)

@@ -3,3 +3,5 @@ bs4
 requests
 psycopg2-binary
 python-decouple
+redis
+django-redis
