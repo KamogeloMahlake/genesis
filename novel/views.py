@@ -605,7 +605,7 @@ def bookmark(request, id):
     except Novel.DoesNotExist:
         return JsonResponse({"error": "Novel does not exist"}, status=404)
 
-@cache_page(60 * 60)
+@cache_page(60 * 10)
 def index(request):
     novels = Novel.objects.all()
     lastest = novels.order_by("-date")[:9]

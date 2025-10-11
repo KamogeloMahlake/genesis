@@ -20,7 +20,7 @@
               <div class="dropdown me-2">
                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
                   {% if user.is_authenticated %}
-                  <img src="{% if user.user_image %}{{user.user_image.url}}{% else %}/media/avatarnew.png {% endif %}" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
+                  <img src="{% if user.user_image %}{{user.user_image.url}}{% else %}/media/avatarnew.png {% endif %}" onerror="/media/avatarnew.png" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
 
                   {% else %}
                   <i class="fa fa-user-circle"  aria-hidden="true" dp="yes"></i>
