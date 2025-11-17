@@ -27,11 +27,10 @@ def delete_comment(request, id):
 
 
 @csrf_exempt
-@login_required
 def rating(request, id):
     novel = get_object_or_404(Novel, pk=id)
 
-    if request.method == "POST":
+    if request.method == "POST" and request.user.is_authenticated:
         if any(i.user == request.user for i in novel.novel_ratings.all()):
             return JsonResponse({"error": "Already made a rating"}, status=403)
 
@@ -119,7 +118,7 @@ def rating(request, id):
                 ),
                 "madeRating": any(
                     i.user == request.user for i in novel.novel_ratings.all()
-                ),
+                ) or not request.user.is_authenticated,
                 "count": novel.novel_ratings.count(),
             }
         )
@@ -602,7 +601,7 @@ def bookmark(request, id):
     except Novel.DoesNotExist:
         return JsonResponse({"error": "Novel does not exist"}, status=404)
 
-@cache_page(60 * 10)
+#@cache_page(60 * 10)
 def index(request):
     novels = Novel.objects.all()
     lastest = novels.order_by("-date")[:9]
@@ -620,7 +619,7 @@ def index(request):
         },
     )
 
-@cache_page(60 * 60)
+#@cache_page(60 * 60)
 def novels_view(request, order, page_nr):
     try:
         novels = Novel.objects.all().order_by(f"{order}")
@@ -673,7 +672,7 @@ def chapters_view(request, id, page_nr):
     except EmptyPage:
         return HttpResponseRedirect(reverse(novel, kwargs={"id": id}))
 
-@cache_page(60 * 10)
+#@cache_page(60 * 10)
 def novel(request, id):
     novel = get_object_or_404(Novel, pk=id)
     chapters = Chapter.objects.filter(novel=novel).order_by("num")[:20]
@@ -729,7 +728,7 @@ def novel(request, id):
         },
     )
 
-@cache_page(60 * 10)
+#@cache_page(60 * 10)
 def chapter(request, id):
     chap = get_object_or_404(Chapter, pk=id)
     novel = get_object_or_404(Novel, pk=chap.novel.id)
