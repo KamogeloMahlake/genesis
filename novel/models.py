@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -11,6 +12,9 @@ class User(AbstractUser):
     date_of_birth = models.DateField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     about = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.username
 
     def serialize(self, user):
         return {
@@ -56,6 +60,15 @@ class Novel(models.Model):
     novel_image = models.ImageField(upload_to="novel-images/", blank=True, null=True)
     status = models.BooleanField(default=False)
     views = models.IntegerField(default=0)
+    last_chapter_scraped = models.TextField(blank=True, null=True)
+    fanfic_id = models.CharField(max_length=100, blank=True, null=True)
+    ao3_id = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self):
+        return f"{self.title}"
 
     def serialize(self, user):
         return {
@@ -92,6 +105,11 @@ class Novel(models.Model):
             "is_author": self.user == user,
         }
 
+    def display_chapters(self):
+        return self.chapters.count()
+
+    display_chapters.short_description = "Chapter Count"
+
 
 class Chapter(models.Model):
     title = models.TextField()
@@ -100,6 +118,17 @@ class Chapter(models.Model):
     content = models.TextField()
     novel = models.ForeignKey(Novel, on_delete=models.CASCADE, related_name="chapters")
     views = models.IntegerField(default=0)
+
+    def display_novel(self):
+        return f"{self.novel.title} - {self.novel.id}"
+
+    display_novel.short_description = "Novel"
+
+    class Meta:
+        ordering = ["num"]
+
+    def __str__(self):
+        return f"{self.title} - {self.novel.title}"
 
     def serialize(self):
         return {
@@ -238,3 +267,14 @@ class Rating(models.Model):
     average_rating = models.PositiveIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="chapter_bookmarks"
+    )
+    novel = models.ForeignKey(Novel, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [("user", "chapter"), ("user", "novel")]

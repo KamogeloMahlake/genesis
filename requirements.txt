@@ -5,3 +5,6 @@ psycopg2-binary
 python-decouple
 redis
 django-redis
+cloudscraper
+ebooklib
+Pillow

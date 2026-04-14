@@ -1,5 +1,5 @@
 import json
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import PermissionDenied, authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator
 from django.db import IntegrityError
@@ -8,10 +8,11 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
-from novel.models import Comment, User, Novel, Chapter, Rating
+from novel.models import Bookmark, Comment, User, Novel, Chapter, Rating
 from novel.forms import NewNovelForm, NewChapterForm, EditProfileForm
 from novel.helpers import text_to_html, html_to_text
 from statistics import fmean
+from django.core.cache import cache
 
 
 @login_required
@@ -55,7 +56,7 @@ def rating(request, id):
                 rating.save()
             except Exception:
                 return JsonResponse(
-                    {"error": "One of the fields is incorre"}, status=403
+                    {"error": "One of the fields is incorrect"}, status=403
                 )
             return JsonResponse(
                 {
@@ -80,7 +81,6 @@ def rating(request, id):
             )
 
         else:
-
             return JsonResponse({"error": "Invalid Form"}, status=403)
 
     if len(novel.novel_ratings.all()) > 0:
@@ -118,7 +118,8 @@ def rating(request, id):
                 ),
                 "madeRating": any(
                     i.user == request.user for i in novel.novel_ratings.all()
-                ) or not request.user.is_authenticated,
+                )
+                or not request.user.is_authenticated,
                 "count": novel.novel_ratings.count(),
             }
         )
@@ -155,6 +156,7 @@ def follow(request, username):
         }
     )
 
+
 def profile(request, username):
     try:
         user = get_object_or_404(User, username=username)
@@ -182,7 +184,6 @@ def edit_profile(request):
         form = EditProfileForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             try:
-
                 form.save()
 
                 return HttpResponseRedirect(
@@ -232,11 +233,14 @@ def edit_profile(request):
             },
         )
 
-def bookmarks(request):
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("login"))
 
-    novels = request.user.bookmarks.all().order_by("-id")
+@login_required
+def bookmarks(request):
+    novels = cache.get(f"bookmarks_{request.user.id}")
+    if not novels:
+        print("test")
+        novels = request.user.bookmarks.all().order_by("title")
+        cache.set(f"bookmarks_{request.user.id}", novels)
     return render(
         request,
         "novel/bookmarks.html",
@@ -251,6 +255,9 @@ def create_chapter(request, id):
         form = NewChapterForm(request.POST)
         novel = get_object_or_404(Novel, pk=id)
 
+        if novel.user != request.user:
+            raise PermissionDenied
+
         if form.is_valid():
             chapter = Chapter(
                 num=form.cleaned_data["num"],
@@ -259,6 +266,7 @@ def create_chapter(request, id):
                 novel=novel,
             )
             chapter.save()
+            cache.delete(f"chapters_{id}")
 
             return HttpResponseRedirect(reverse("chapter", kwargs={"id": chapter.id}))
 
@@ -277,6 +285,9 @@ def create_chapter(request, id):
 def edit_chapter(request, id):
     chapter = get_object_or_404(Chapter, pk=id)
 
+    if chapter.novel.user != request.user:
+        raise PermissionDenied
+
     if request.method == "POST":
         form = NewChapterForm(request.POST)
 
@@ -286,7 +297,8 @@ def edit_chapter(request, id):
             chapter.content = text_to_html(form.cleaned_data["content"])
 
             chapter.save()
-
+            cache.delete(f"chapters_{chapter.novel.id}")
+            cache.delete(f"chapter_{chapter.id}")
             return HttpResponseRedirect(reverse("chapter", kwargs={"id": chapter.id}))
 
         else:
@@ -344,7 +356,7 @@ def create_novel(request):
             novel.save()
             novel.genres.set(genres)
             novel.save()
-
+            cache.delete("novels")
             return HttpResponseRedirect(reverse("novel", kwargs={"id": novel.id}))
         else:
             return render(
@@ -359,6 +371,9 @@ def create_novel(request):
 @login_required
 def edit_novel(request, id):
     novel = get_object_or_404(Novel, pk=id)
+
+    if novel.user != request.user:
+        raise PermissionDenied
 
     if request.method == "POST":
         form = NewNovelForm(request.POST, request.FILES)
@@ -380,7 +395,7 @@ def edit_novel(request, id):
                 novel.genres.clear()
                 novel.genres.set(genres)
             novel.save()
-
+            cache.delete(f"novel_{id}")
             return HttpResponseRedirect(reverse("novel", kwargs={"id": id}))
         else:
             return render(
@@ -413,12 +428,21 @@ def edit_novel(request, id):
         },
     )
 
-@cache_page(60 * 10)
-def search(request, page_nr=0):
-    if page_nr > 0:
-        query = request.GET.get("q")
 
+def search(request, page_nr=0):
+    query = request.GET.get("q")
+
+    try:
+        novels = cache.get("novels")
+        if not novels:
+            raise Exception
+
+        novels = novels.filter(title__icontains=query)
+
+    except Exception:
         novels = Novel.objects.filter(title__icontains=query)
+
+    if page_nr > 0:
         try:
             c = Paginator(novels, 10)
             current_novels = c.page(page_nr)
@@ -440,8 +464,6 @@ def search(request, page_nr=0):
             },
         )
 
-    query = request.GET.get("q")
-    novels = Novel.objects.filter(title__icontains=query)
     return JsonResponse(
         [novel.serialize(request.user) for novel in novels], status=200, safe=False
     )
@@ -591,7 +613,7 @@ def bookmark(request, id):
         return JsonResponse({"error": "User must login"}, status=400)
     try:
         novel = get_object_or_404(Novel, pk=id)
-
+        cache.delete(f"bookmarks_{request.user.id}")
         if novel in request.user.bookmarks.all():
             request.user.bookmarks.remove(novel)
             return JsonResponse({"message": "Removed"}, status=200)
@@ -601,28 +623,51 @@ def bookmark(request, id):
     except Novel.DoesNotExist:
         return JsonResponse({"error": "Novel does not exist"}, status=404)
 
-#@cache_page(60 * 10)
+
 def index(request):
-    novels = Novel.objects.all()
-    lastest = novels.order_by("-date")[:9]
-    popular = novels.order_by("-views")[:9]
+    lastest = cache.get("lastest")
+    popular = cache.get("popular")
+    chapters = cache.get("lastest_chapters")
+    novels = cache.get("novels")
+
+    if not lastest or not popular or not chapters or not novels:
+        novels = Novel.objects.all()
+        lastest = [
+            novel.serialize(request.user) for novel in novels.order_by("-date")[:9]
+        ]
+        popular = [
+            novel.serialize(request.user) for novel in novels.order_by("-views")[:9]
+        ]
+        chapters = [
+            chapter.serialize()
+            for chapter in Chapter.objects.all().order_by("-id")[:10]
+        ]
+        cache.set("novels", novels)
+        cache.set("lastest", lastest)
+        cache.set("popular", popular)
+        cache.set("lastest_chapters", chapters)
     return render(
         request,
         "novel/index.html",
         {
-            "recent_chapters": [
-                chapter.serialize()
-                for chapter in Chapter.objects.all().order_by("-id")[:10]
-            ],
-            "lastest": [n.serialize(request.user) for n in lastest],
-            "popular": [n.serialize(request.user) for n in popular],
+            "recent_chapters": chapters,
+            "lastest": lastest,
+            "popular": popular,
         },
     )
 
-#@cache_page(60 * 60)
+
 def novels_view(request, order, page_nr):
     try:
-        novels = Novel.objects.all().order_by(f"{order}")
+        novels = cache.get("novels")
+
+        if not novels:
+            novels = Novel.objects.all()
+            print("here")
+            cache.set("novels", novels)
+
+        if "title" not in order:
+            novels = novels.order_by(order)
         n = Paginator(novels, 10)
         current_novels = n.page(page_nr)
 
@@ -648,8 +693,16 @@ def novels_view(request, order, page_nr):
 
 def chapters_view(request, id, page_nr):
     try:
-        n = get_object_or_404(Novel, pk=id)
-        chapters = Chapter.objects.filter(novel=n).order_by("num")
+        n = cache.get(f"novel_{id}")
+        chapters = cache.get(f"chapters_{id}")
+
+        if not chapters or not n:
+            n = get_object_or_404(Novel, pk=id)
+            chapters = Chapter.objects.filter(novel=n)
+
+            cache.set(f"novel_{id}", n)
+            cache.set(f"chapters_{id}", chapters)
+
         c = Paginator(chapters, 100)
         current_chapters = c.page(page_nr)
 
@@ -672,12 +725,22 @@ def chapters_view(request, id, page_nr):
     except EmptyPage:
         return HttpResponseRedirect(reverse(novel, kwargs={"id": id}))
 
-#@cache_page(60 * 10)
-def novel(request, id):
-    novel = get_object_or_404(Novel, pk=id)
-    chapters = Chapter.objects.filter(novel=novel).order_by("num")[:20]
 
-    if len(novel.novel_ratings.all()) > 0:
+def novel(request, id):
+    novel = cache.get(f"novel_{id}")
+    chapters = cache.get(f"chapters_{id}")
+    rating = cache.get(f"rating_{id}")
+
+    if not novel or not chapters:
+        novel = get_object_or_404(Novel, pk=id)
+        chapters = Chapter.objects.filter(novel=novel)
+
+        cache.set(f"novel_{id}", novel)
+        cache.set(f"chapters_{id}", chapters)
+
+    chapters = chapters[:20]
+
+    if len(novel.novel_ratings.all()) > 0 and not rating:
         rating = {
             "story": fmean(
                 [
@@ -710,8 +773,18 @@ def novel(request, id):
                 ]
             ),
         }
+        cache.set(f"rating_{id}", rating, 300)
 
     print(novel.novel_ratings.all())
+
+    last_chapter = None
+
+    if request.user.is_authenticated:
+        try:
+            b = request.user.chapter_bookmarks.get(novel=novel, user=request.user)
+            last_chapter = b.chapter.id if b else None
+        except Exception:
+            pass
     return render(
         request,
         "novel/novel.html",
@@ -724,14 +797,33 @@ def novel(request, id):
                 if request.user.is_authenticated
                 else False
             ),
+            "last_chapter": last_chapter,
             "rating": rating if len(novel.novel_ratings.all()) > 0 else {},
         },
     )
 
-#@cache_page(60 * 10)
+
 def chapter(request, id):
-    chap = get_object_or_404(Chapter, pk=id)
-    novel = get_object_or_404(Novel, pk=chap.novel.id)
+    chap = cache.get(f"chapter_{id}")
+
+    if chap:
+        novel = cache.get(f"novel_{chap.novel.id}")
+    else:
+        chap = get_object_or_404(Chapter, pk=id)
+        novel = get_object_or_404(Novel, pk=chap.novel.id)
+
+        cache.set(f"chapter_{id}", chap, 300)
+        cache.set(f"novel_{novel.id}", novel)
+
+    if request.user.is_authenticated:
+        try:
+            b = Bookmark.objects.get(user=request.user, novel=novel)
+            if b:
+                b.delete()
+        except Exception:
+            pass
+        Bookmark.objects.update_or_create(user=request.user, novel=novel, chapter=chap)
+
     novel.views += 1
     chap.views += 1
 
@@ -807,7 +899,16 @@ def delete(request, view, id):
     user = object.user if view == "novel" else object.novel.user
     if request.user != user:
         return HttpResponseRedirect(reverse("index"))
+
     object.delete()
+
+    if view == "novel":
+        cache.delete("novels")
+        cache.delete(f"novel_{object.id}")
+
+    else:
+        cache.delete(f"chapters_{object.novel.id}")
+        cache.delete(f"chapter_{object.id}")
     if view == "novel":
         return HttpResponseRedirect(
             reverse("profile", kwargs={"username": user.username})
