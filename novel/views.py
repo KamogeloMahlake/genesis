@@ -237,9 +237,12 @@ def edit_profile(request):
 @login_required
 def bookmarks(request):
     novels = cache.get(f"bookmarks_{request.user.id}")
+    
     if not novels:
-        print("test")
-        novels = request.user.bookmarks.all().order_by("title")
+        print("here")
+        bookmarks = Bookmark.objects.filter(user=request.user, chapter=None)
+        novels = [bookmark.novel for bookmark in bookmarks]
+        
         cache.set(f"bookmarks_{request.user.id}", novels)
     return render(
         request,
@@ -612,16 +615,16 @@ def bookmark(request, id):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User must login"}, status=400)
     try:
-        novel = get_object_or_404(Novel, pk=id)
+        novel = Bookmark.objects.get(novel=id, user=request.user, chapter=None).novel
+        novel.delete()
+        
         cache.delete(f"bookmarks_{request.user.id}")
-        if novel in request.user.bookmarks.all():
-            request.user.bookmarks.remove(novel)
-            return JsonResponse({"message": "Removed"}, status=200)
-        else:
-            request.user.bookmarks.add(novel)
-            return JsonResponse({"message": "Added"}, status=200)
-    except Novel.DoesNotExist:
-        return JsonResponse({"error": "Novel does not exist"}, status=404)
+        return JsonResponse({"message": "Removed"}, status=200)
+    except Bookmark.DoesNotExist:
+        bookmark = Bookmark(user=request.user, novel=get_object_or_404(Novel, pk=id))
+        
+        bookmark.save()
+        return JsonResponse({"message": "Added"}, status=200)
 
 
 def index(request):
@@ -781,8 +784,9 @@ def novel(request, id):
 
     if request.user.is_authenticated:
         try:
-            b = request.user.chapter_bookmarks.get(novel=novel, user=request.user)
+            b = Bookmark.objects.get(user=request.user, novel=novel, chapter__isnull=False)
             last_chapter = b.chapter.id if b else None
+
         except Exception:
             pass
     return render(
@@ -793,9 +797,7 @@ def novel(request, id):
             "chapters": [chapter.serialize() for chapter in chapters],
             "chapter_id": chapters[0].id if chapters else 0,
             "bookmark": (
-                novel in request.user.bookmarks.all()
-                if request.user.is_authenticated
-                else False
+                True if Bookmark.objects.filter(user=request.user, novel=novel, chapter=None) else False
             ),
             "last_chapter": last_chapter,
             "rating": rating if len(novel.novel_ratings.all()) > 0 else {},

@@ -7,7 +7,6 @@ from django.utils import timezone
 
 class User(AbstractUser):
     user_image = models.ImageField(upload_to="user-images/", null=True, blank=True)
-    bookmarks = models.ManyToManyField("Novel", related_name="bookmark_by", blank=True)
     gender = models.CharField(max_length=6, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
@@ -273,8 +272,5 @@ class Bookmark(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="chapter_bookmarks"
     )
-    novel = models.ForeignKey(Novel, on_delete=models.CASCADE)
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = [("user", "chapter"), ("user", "novel")]
+    novel = models.ForeignKey(Novel, on_delete=models.CASCADE, null=True, blank=True)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True, blank=True)

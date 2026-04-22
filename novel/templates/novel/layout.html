@@ -13,7 +13,7 @@
     </head>
     
     <body>
-      <header class="container">
+      <header>
         <nav class="navbar navbar-dark bg-dark">
           <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'index' %}">Genesis</a>
@@ -96,12 +96,12 @@
         </nav>
       </header>
       <hr>
-      <main style="margin-top: 1rem" class="container">
+      <main style="margin: 1rem">
           {% block body %}
           {% endblock %}
       </main>
       <hr>
-      <footer class="container">
+      <footer style="margin: 1rem">
         <a href="{% url 'novels' order='-id' page_nr=1 %}" >Novels</a>
       </footer>
         <script>
