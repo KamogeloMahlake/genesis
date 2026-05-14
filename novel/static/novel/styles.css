@@ -21,6 +21,7 @@ body {
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
+
 }
 
 input, button, textarea, select {
@@ -171,4 +172,8 @@ button {
 }
 .checked {
   color: orange;
+}
+
+image {
+  margin-left: 2rem;
 }

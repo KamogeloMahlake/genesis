@@ -33,4 +33,7 @@ urlpatterns = [
     path("edit_chapter/<int:id>", views.edit_chapter, name="edit_chapter"),
     path("rating/<int:id>", views.rating, name="rating"),
     path("delete_comment/<int:id>", views.delete_comment, name="delete_comment"),
+    path(
+        "last_read/<int:novel_id>/<int:chapter_id>", views.last_read, name="last_read"
+    ),
 ]

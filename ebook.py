@@ -10,6 +10,9 @@ generates EPUB files for each novel.
 
 from ebooklib import epub
 from bs4 import BeautifulSoup
+import os
+
+os.makedirs("ebooks", exist_ok=True)
 
 
 def text_to_html(text):
@@ -66,7 +69,7 @@ def create_epub(title, chapters, novel_image=None, description=None):
         book.spine.append(des)
     try:
         if novel_image:
-            with open(f"../media/{novel_image}", "rb") as img_file:
+            with open(f"./media/{novel_image}", "rb") as img_file:
                 book.set_cover(novel_image, img_file.read())
 
     except Exception as e:
@@ -87,7 +90,7 @@ def create_epub(title, chapters, novel_image=None, description=None):
 
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
-    epub.write_epub(f"{title}.epub", book, {})
+    epub.write_epub(f"./ebooks/{title}.epub", book, {})
     print(f"Created EPUB: {title}.epub")
 
 
@@ -112,7 +115,7 @@ def main():
     cursor = psql.cursor()
 
     cursor.execute(
-        "SELECT id, title, novel_image, description FROM novel_novel ORDER BY id ASC"
+        "SELECT id, title, novel_image, description FROM novel_novel ORDER BY id DESC"
     )
     novels = cursor.fetchall()
 
@@ -131,4 +134,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -237,12 +237,12 @@ def edit_profile(request):
 @login_required
 def bookmarks(request):
     novels = cache.get(f"bookmarks_{request.user.id}")
-    
+
     if not novels:
         print("here")
         bookmarks = Bookmark.objects.filter(user=request.user, chapter=None)
         novels = [bookmark.novel for bookmark in bookmarks]
-        
+
         cache.set(f"bookmarks_{request.user.id}", novels)
     return render(
         request,
@@ -617,12 +617,12 @@ def bookmark(request, id):
     try:
         novel = Bookmark.objects.get(novel=id, user=request.user, chapter=None).novel
         novel.delete()
-        
+
         cache.delete(f"bookmarks_{request.user.id}")
         return JsonResponse({"message": "Removed"}, status=200)
     except Bookmark.DoesNotExist:
         bookmark = Bookmark(user=request.user, novel=get_object_or_404(Novel, pk=id))
-        
+
         bookmark.save()
         return JsonResponse({"message": "Added"}, status=200)
 
@@ -643,7 +643,7 @@ def index(request):
         ]
         chapters = [
             chapter.serialize()
-            for chapter in Chapter.objects.all().order_by("-id")[:10]
+            for chapter in Chapter.objects.all().order_by("-id")[:100000]
         ]
         cache.set("novels", novels)
         cache.set("lastest", lastest)
@@ -778,17 +778,18 @@ def novel(request, id):
         }
         cache.set(f"rating_{id}", rating, 300)
 
-    print(novel.novel_ratings.all())
-
     last_chapter = None
 
     if request.user.is_authenticated:
         try:
-            b = Bookmark.objects.get(user=request.user, novel=novel, chapter__isnull=False)
+            b = Bookmark.objects.get(
+                user=request.user, novel=novel, chapter__isnull=False
+            )
             last_chapter = b.chapter.id if b else None
-
+            print(last_chapter)
         except Exception:
-            pass
+            print(None)
+    
     return render(
         request,
         "novel/novel.html",
@@ -797,12 +798,32 @@ def novel(request, id):
             "chapters": [chapter.serialize() for chapter in chapters],
             "chapter_id": chapters[0].id if chapters else 0,
             "bookmark": (
-                True if Bookmark.objects.filter(user=request.user, novel=novel, chapter=None) else False
+                True
+                if request.user.is_authenticated and Bookmark.objects.filter(user=request.user, novel=novel, chapter=None)
+                else False
             ),
             "last_chapter": last_chapter,
             "rating": rating if len(novel.novel_ratings.all()) > 0 else {},
         },
     )
+
+
+def last_read(request, novel_id, chapter_id):
+    if request.user.is_authenticated:
+        try:
+            bookmarks = Bookmark.objects.filter(
+                user=request.user, novel_id=novel_id, chapter__isnull=False
+            )
+            for b in bookmarks:
+                b.delete()
+        except Exception:
+            pass
+        Bookmark.objects.update_or_create(
+            user=request.user, novel_id=novel_id, chapter_id=chapter_id
+        )
+        return JsonResponse({"message": "Success"}, status=200)
+    else:
+        return JsonResponse({"message": "Failure"}, status=200)
 
 
 def chapter(request, id):
@@ -816,15 +837,6 @@ def chapter(request, id):
 
         cache.set(f"chapter_{id}", chap, 300)
         cache.set(f"novel_{novel.id}", novel)
-
-    if request.user.is_authenticated:
-        try:
-            b = Bookmark.objects.get(user=request.user, novel=novel)
-            if b:
-                b.delete()
-        except Exception:
-            pass
-        Bookmark.objects.update_or_create(user=request.user, novel=novel, chapter=chap)
 
     novel.views += 1
     chap.views += 1

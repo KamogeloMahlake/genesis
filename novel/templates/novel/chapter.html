@@ -8,8 +8,10 @@
 
 {% block body %}
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    localStorage.setItem("{{chapter.novel_id}}", "{{chapter.id}}")
+  document.addEventListener("DOMContentLoaded", async () => {
+    let response = await fetch("{% url 'last_read' novel_id=chapter.novel_id chapter_id=chapter.id %}");
+    let data = await response.json();
+    console.log(data);
   })
 </script>
 
