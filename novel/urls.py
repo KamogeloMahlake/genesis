@@ -36,4 +36,5 @@ urlpatterns = [
     path(
         "last_read/<int:novel_id>/<int:chapter_id>", views.last_read, name="last_read"
     ),
+    path("epub/<int:id>", views.download_epub, name="epub"),
 ]

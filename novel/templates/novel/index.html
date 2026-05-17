@@ -1,5 +1,5 @@
 {% extends "novel/layout.html" %}
-
+{% load math_extras %}
 
 {% block title %}
   Genesis | Home
@@ -12,24 +12,25 @@
     <h3>Lastest: </h3>
     <div>
     {% for novel in lastest %}
-      <a  class="mb-2" style="display: flex; font-size: 0.8rem" href="{% url 'novel' id=novel.id %}">
-        <img src="{{novel.image}}" style="display: inline-block; width: 4rem; height: 4rem; aspect-ratio: 1; object-fit: cover;" />
+      <a class="mb-2" style="display: flex; font-size: 0.8rem" href="{% url 'novel' id=novel.id %}">
+        <img src="{% if novel.novel_image %}{{ novel.novel_image.url }}{% else %}/media/placeholder.png{% endif %}" class="images" />
         <div>
           <h6>{{novel.title}}</h6>
           <div>
-            <span class="fa fa-star {% if novel.average_rating > 0 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 1 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 2 %} checked {% endif %}"></span>            
-            <span class="fa fa-star {% if novel.average_rating > 3 %} checked {% endif %}" ></span>
-            <span class="fa fa-star {% if novel.average_rating > 4 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 5 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 6 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 7 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 8 %} checked {% endif %}" ></span>
-            <span class="fa fa-star {% if novel.average_rating > 9 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 0 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 1 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 2 %} checked {% endif %}"></span>            
+            <span class="fa fa-star {% if novel|ratings_calculate > 3 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 4 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 5 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 6 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 7 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 8 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 9 %} checked {% endif %}"></span>
           </div>
         </div>
       </a>
+
     {% endfor %}
     </div>
   </div>
@@ -38,23 +39,24 @@
     <div >
     {% for novel in popular %}
       <a class="mb-2" style="display: flex; font-size: 0.8rem" href="{% url 'novel' id=novel.id %}">
-        <img src="{{novel.image}}" style="display: inline-block; width: 4rem; height: 4rem; aspect-ratio: 1; object-fit: cover;" />
+        <img src="{% if novel.novel_image %}{{ novel.novel_image.url }}{% else %}/media/placeholder.png{% endif %}" class="images" />
         <div>
           <h6>{{novel.title}}</h6>
           <div>
-            <span class="fa fa-star {% if novel.average_rating > 0 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 1 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 2 %} checked {% endif %}"></span>            
-            <span class="fa fa-star {% if novel.average_rating > 3 %} checked {% endif %}" ></span>
-            <span class="fa fa-star {% if novel.average_rating > 4 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 5 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 6 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 7 %} checked {% endif %}"></span>
-            <span class="fa fa-star {% if novel.average_rating > 8 %} checked {% endif %}" ></span>
-            <span class="fa fa-star {% if novel.average_rating > 9 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 0 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 1 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 2 %} checked {% endif %}"></span>            
+            <span class="fa fa-star {% if novel|ratings_calculate > 3 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 4 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 5 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 6 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 7 %} checked {% endif %}"></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 8 %} checked {% endif %}" ></span>
+            <span class="fa fa-star {% if novel|ratings_calculate > 9 %} checked {% endif %}"></span>
           </div>
         </div>
       </a>
+
     {% endfor %}
     </div>
   </div>
@@ -67,9 +69,9 @@
   </div>
   {% for chapter in recent_chapters %}
     <a style="display: flex; font-size: 0.8rem" href="{% url 'chapter' id=chapter.id %}">
-      <img src="{{chapter.novel_image_url}}" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
+      <img src="{% if chapter.novel.novel_image %}{{chapter.novel.novel_image.url}}{% else %}/media/placeholder.png{% endif%}" style="display: inline-block; width: 2.1875rem; height: 2.1875rem; border-radius: 50%; aspect-ratio: 1; object-fit: cover;" />
       <div>
-        <h6>{{chapter.novel_name}}</h6>
+        <h6>{{chapter.novel.title}}</h6>
         <p>{{chapter.title}}</p>
       </div>
     </a>

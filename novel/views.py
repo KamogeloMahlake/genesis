@@ -3,7 +3,7 @@ from django.contrib.auth import PermissionDenied, authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
@@ -13,6 +13,7 @@ from novel.forms import NewNovelForm, NewChapterForm, EditProfileForm
 from novel.helpers import text_to_html, html_to_text
 from statistics import fmean
 from django.core.cache import cache
+
 
 
 @login_required
@@ -635,16 +636,9 @@ def index(request):
 
     if not lastest or not popular or not chapters or not novels:
         novels = Novel.objects.all()
-        lastest = [
-            novel.serialize(request.user) for novel in novels.order_by("-date")[:9]
-        ]
-        popular = [
-            novel.serialize(request.user) for novel in novels.order_by("-views")[:9]
-        ]
-        chapters = [
-            chapter.serialize()
-            for chapter in Chapter.objects.all().order_by("-id")[:100000]
-        ]
+        lastest = novels.order_by("-date")[:9]
+        popular = novels.order_by("-views")[:9]
+        chapters = Chapter.objects.all().order_by("-id")[:100]
         cache.set("novels", novels)
         cache.set("lastest", lastest)
         cache.set("popular", popular)
@@ -671,17 +665,14 @@ def novels_view(request, order, page_nr):
 
         if "title" not in order:
             novels = novels.order_by(order)
-        n = Paginator(novels, 10)
+        n = Paginator(novels, 100)
         current_novels = n.page(page_nr)
 
         return render(
             request,
             "novel/novels.html",
             {
-                "novels": [
-                    novel.serialize(request.user)
-                    for novel in current_novels.object_list
-                ],
+                "novels": current_novels.object_list,
                 "num": [i for i in range(1, n.num_pages + 1) if abs(i - page_nr) < 5],
                 "last": n.num_pages,
                 "title": f"Novels | Page {page_nr}  ",
@@ -692,6 +683,57 @@ def novels_view(request, order, page_nr):
 
     except EmptyPage:
         return HttpResponseRedirect(reverse(index))
+
+
+def download_epub(request, id):
+    novel = get_object_or_404(Novel, pk=id)
+    chapters = Chapter.objects.filter(novel=novel).order_by("num")
+
+    response = HttpResponse(content_type="application/epub+zip")
+    response["Content-Disposition"] = f'attachment; filename="{novel.title}.epub"'
+
+    from ebooklib import epub
+
+    book = epub.EpubBook()
+
+    book.set_identifier(str(novel.id))
+    book.set_title(novel.title)
+    book.set_language("en")
+
+    if novel.description:
+        des = epub.EpubHtml(
+            title="Description", file_name="description.xhtml", lang="en"
+        )
+        des.content = f"<h1>Description</h1><p>{novel.description}</p>"
+        book.add_item(des)
+        book.toc.append(epub.Link("description.xhtml", "Description", "description"))
+        book.spine.append(des)
+
+    if novel.novel_image:
+        novel.novel_image.open('rb')
+        try:
+            book.set_cover(novel.novel_image.name, novel.novel_image.read())
+        except Exception as e:
+            print(f"Could not set cover image: {e}")
+
+        finally:
+            novel.novel_image.close()
+
+
+
+    
+    for chapter in chapters:
+        c = epub.EpubHtml(title=chapter.title, file_name=f"{chapter.num}.xhtml")
+        c.content = f"<h1>{chapter.title}</h1><p>{text_to_html(chapter.content) if 'window.pubfuturetag' in chapter.content else chapter.content}</p>"
+        book.add_item(c)
+        book.toc.append(c)
+        book.spine.append(c)
+
+    book.add_item(epub.EpubNcx())
+    book.add_item(epub.EpubNav())
+    epub.write_epub(response, book)
+
+    return response
 
 
 def chapters_view(request, id, page_nr):
